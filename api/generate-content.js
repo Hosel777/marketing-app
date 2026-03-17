@@ -1,137 +1,135 @@
-import axios from 'axios'
-
 export default async function handler(req, res) {
+  res.setHeader('Content-Type', 'application/json')
+  
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { prompt, tipo = 'post', servicio = 'Fonoaudiología', tono = 'cálido' } = req.body
-
-  if (!prompt && !servicio) {
-    return res.status(400).json({ error: 'Prompt o servicio es requerido' })
-  }
-
-  const apiKey = process.env.HUGGINGFACE_API_KEY
-
-  if (!apiKey) {
-    return res.status(500).json({ error: 'API key no configurada', mock: true })
-  }
+  const { tipo = 'post', servicio = 'Fonoaudiología', tono = 'cálido' } = req.body || {}
 
   const toneInstructions = {
-    'profesional': 'Formal pero accesible, profesional de la salud',
-    'cálido': 'Empático, cercano, como un amigo que da consejos',
-    'educativo': 'Informativo, claro, centrado en enseñar',
-    'motivacional': 'Inspirador, positivo, orientado a la acción'
+    'profesional': 'Formal pero accesible',
+    'cálido': 'Empático y cercano',
+    'educativo': 'Informativo y claro',
+    'motivacional': 'Inspirador y positivo'
   }
 
   const serviceContext = {
-    'Fonoaudiología': 'desarrollo del lenguaje, habla y comunicación en niños',
-    'Psicología': 'salud mental y bienestar emocional infantil',
-    'Psicomotricidad': 'desarrollo motor y coordinación en niños',
+    'Fonoaudiología': 'desarrollo del lenguaje y comunicación en niños',
+    'Psicología': 'salud mental y bienestar emocional',
+    'Psicomotricidad': 'desarrollo motor y coordinación',
     'Evaluación Neuropsicológica': 'evaluaciones cognitivas y de aprendizaje',
     'Inclusión Educativa': 'apoyo a estudiantes con NEE',
-    'Apoyo Escolar': 'refuerzo académico y métodos de estudio'
+    'Apoyo Escolar': 'refuerzo académico'
   }
 
-  let systemPrompt = ''
-  
+  const contentTemplates = {
+    post: {
+      hooks: [
+        '¿Sabías que la atención temprana puede marcar la diferencia en el desarrollo de tu hijo?',
+        '¿Tu hijo tiene dificultades para expresarse o comunicarse?',
+        'No ignores las señales que pueden indicar que tu hijo necesita ayuda profesional',
+        'La salud emocional de tus hijos es igual de importante que la física'
+      ],
+      problems: [
+        'Muchos padres no reconocen las señales de alerta en el desarrollo de sus hijos',
+        'Es común que los niños presenten dificultades que no sabemos cómo abordar',
+        'Las familias frecuentemente buscan ayuda cuando ya ha pasado tiempo valioso'
+      ],
+      solutions: [
+        'En CreSer Evaluamos y acompañamos a cada niño de manera personalizada',
+        'Nuestro equipo interdisciplinario trabaja en conjunto para dar la mejor atención',
+        'Contamos con profesionales especializados en cada área'
+      ]
+    }
+  }
+
+  const templates = contentTemplates.post
+  const randomHook = templates.hooks[Math.floor(Math.random() * templates.hooks.length)]
+  const randomProblem = templates.problems[Math.floor(Math.random() * templates.problems.length)]
+  const randomSolution = templates.solutions[Math.floor(Math.random() * templates.solutions.length)]
+
+  let copy = ''
+  const serviceName = servicio
+  const tone = toneInstructions[tono] || toneInstructions['cálido']
+  const context = serviceContext[servicio] || serviceContext['Fonoaudiología']
+
   if (tipo === 'post') {
-    systemPrompt = `Eres un experto en marketing para centros terapéuticos-educativos. Genera un post para Instagram sobre ${servicio} (${serviceContext[servicio] || ''}). 
+    copy = `${randomHook}
 
-Tono: ${toneInstructions[tono] || toneInstructions['cálido']}
+${randomProblem}
 
-Requisitos:
-- Un gancho emocional al inicio (pregunta o afirmación impactante)
-- Explicación breve del problema o necesidad
-- Cómo CreSer puede ayudar (centro en Córdoba, Argentina)
-- Llamado a la acción (CTA)
-- Emojis relevantes
-- Hashtags en español (#Córdoba, #Argentina, #${servicio.replace(' ', '')}, #Trelew, #niños, #familia)
+En CreSer, centro terapéutico-educativo interdisciplinario en Córdoba, Argentina, entendemos estas preocupaciones. Nuestro equipo de ${serviceName} trabaja día a día para ayudar a niños y familias a alcanzar su máximo potencial.
 
-Máximo 200 palabras. Estructura: gancho - problema - solución - CTA - hashtags.`
+${randomSolution}
+
+✨ Modalidad presencial y online
+✨ Ambiente cálido y profesional
+✨ Equipo interdisciplinario especializado
+
+💬 ¿Te gustaría más información? Escríbenos y te asesoramos sin compromiso.
+
+#${serviceName.replace(' ', '')} #CreSer #Córdoba #Argentina #TerapiaInfantil #DesarrolloInfantil #Familia #Niños #Salud #Educación`
   } else if (tipo === 'carousel') {
-    systemPrompt = `Eres un experto en marketing para centros terapéuticos. Genera contenido para un carousel educativo de Instagram sobre ${servicio}.
+    copy = `📚 CAROUSEL: Todo sobre ${serviceName}
 
-Tono: ${toneInstructions[tono] || toneInstructions['cálido']}
+1/5 ¿Qué es ${serviceName}?
+Es una disciplina que ayuda al desarrollo integral de los niños
 
-Estructura (7 slides):
-1: Título atractivo
-2: Introducción al tema
-3-5: Puntos clave o señales de alerta
-6: Cómo CreSer puede ayudar
-7: Llamado a la acción + hashtags
+2/5 Señales de alerta
+- Retrasos en el desarrollo
+- Dificultades de comunicación
+- Problemas de comportamiento
 
-Cada slide máximo 25 palabras. Incluye emojis.`
+3/5 ¿Cómo podemos ayudar?
+Evaluación integral y tratamiento personalizado
+
+4/5 Nuestro enfoque
+Trabajo en equipo con profesionales de diferentes áreas
+
+5/5 Contáctanos
+Estamos para ayudarte
+
+#${serviceName.replace(' ', '')} #CreSer #Córdoba #Aprendizaje #Educación`
   } else if (tipo === 'reel') {
-    systemPrompt = `Eres un experto en marketing. Genera un script para Reel/TikTok de 30-60 segundos sobre ${servicio}.
+    copy = `🎬 ${randomHook}
 
-Tono: ${toneInstructions[tono] || toneInstructions['cálido']}
+(sigue para más info)
 
-Estructura:
-- Hook (3 segundos, pregunta impactante)
-- Problema común
-- Solución o consejo práctico
-- Llamado a la acción
-- Hashtags
+🐦 En CreSer entendemos las preocupaciones de los padres
 
-Máximo 150 palabras.`
-  } else if (tipo === 'story') {
-    systemPrompt = `Genera contenido para Instagram Story sobre ${servicio}. Tono: ${toneInstructions[tono] || toneInstructions['cálido']}. Máximo 50 palabras. Incluye sugerencia de sticker (pregunta/encuesta).`
+💡 Nuestro equipo interdisciplinario está para ayudarte
+
+📱 Escríbenos por DM para más información
+
+#${serviceName.replace(' ', '')} #CreSer #Parenting #Córdoba #Argentina #TerapiaInfantil`
+  } else {
+    copy = `${randomHook}
+
+💬 Escríbenos para más información
+
+#${serviceName.replace(' ', '')} #CreSer #Córdoba`
   }
 
-  try {
-    const response = await axios.post(
-      'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
-      {
-        inputs: systemPrompt,
-        parameters: {
-          max_new_tokens: 500,
-          temperature: 0.8,
-          top_p: 0.9
-        }
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 120000
-      }
-    )
-
-    const generatedText = response.data?.[0]?.generated_text || ''
-    const content = extractContent(generatedText, servicio, tipo)
-
-    res.status(200).json({ 
-      success: true, 
-      content,
-      raw: generatedText
-    })
-  } catch (error) {
-    console.error('Error generating content:', error.message)
-    res.status(500).json({ error: error.message, mock: true })
-  }
-}
-
-function extractContent(text, servicio, tipo) {
-  const lines = text.split('\n').filter(l => l.trim())
-  
-  const hashtags = text.match(/#[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ]+/g) || [
-    `#${servicio.replace(' ', '')}`, '#Córdoba', '#CreSer', '#Argentina', '#niños'
+  const hashtags = [
+    `#${serviceName.replace(' ', '')}`,
+    '#CreSer',
+    '#Córdoba',
+    '#Argentina',
+    '#TerapiaInfantil',
+    '#DesarrolloInfantil',
+    '#Familia',
+    '#Niños',
+    '#Educación'
   ]
 
-  const cleanHashtags = [...new Set(hashtags)].slice(0, 10)
-
-  let copy = text.replace(/^.*?:\s*/s, '').replace(/#.*$/gs, '').trim()
-  
-  if (copy.length < 50) {
-    copy = lines.slice(0, 8).join('\n')
-  }
-
-  return {
-    copy: copy.substring(0, 1000),
-    hashtags: cleanHashtags,
-    topic: lines[0]?.substring(0, 60) || `Tema sobre ${servicio}`,
-    service: servicio
-  }
+  return res.status(200).json({
+    success: true,
+    content: {
+      copy,
+      hashtags,
+      topic: `Información sobre ${serviceName}`,
+      service: servicio
+    }
+  })
 }
