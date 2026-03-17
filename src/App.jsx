@@ -5,25 +5,23 @@ import ContentGenerator from './pages/ContentGenerator'
 import LeadManagement from './pages/LeadManagement'
 import Calendar from './pages/Calendar'
 import Analytics from './pages/Analytics'
-import SocialMedia from './pages/SocialMedia'
+import SocialMedia from './pages/Settings'
 import Settings from './pages/Settings'
 
 function App() {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="flex-1 md:ml-64 p-4 md:p-8 w-full overflow-x-hidden">
-        <div className="max-w-7xl mx-auto">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/generador-contenido" element={<ContentGenerator />} />
-            <Route path="/leads" element={<LeadManagement />} />
-            <Route path="/calendario" element={<Calendar />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/redes-sociales" element={<SocialMedia />} />
-            <Route path="/configuracion" element={<Settings />} />
-          </Routes>
-        </div>
+      <main className="flex-1 w-full min-h-screen">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/generador-contenido" element={<ContentGenerator />} />
+          <Route path="/leads" element={<LeadManagement />} />
+          <Route path="/calendario" element={<Calendar />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/redes-sociales" element={<SocialMedia />} />
+          <Route path="/configuracion" element={<Settings />} />
+        </Routes>
       </main>
     </div>
   )
