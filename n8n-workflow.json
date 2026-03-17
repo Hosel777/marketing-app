@@ -1,0 +1,331 @@
+{
+  "name": "CreSer - Workflow Publicación Redes",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "creser-publicacion",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": false
+        }
+      },
+      "id": "webhook-entrada",
+      "name": "Webhook Entrada",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "creser-marketing"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value": "={{ $json.action }}",
+              "operation": "equals",
+              "node": "webhook-entrada"
+            }
+          ]
+        }
+      },
+      "id": "switch-accion",
+      "name": "Switch Acción",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://image.pollinations.ai/prompt/{{ $json.promptVisual }}",
+        "responseFormat": "url",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "nodo-generar-imagen",
+      "name": "Generar Imagen Pollinations",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [650, 150],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "https://api.klingai.com/v1/images/generations",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.KLING_API_KEY }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.promptVisual }}"
+            },
+            {
+              "name": "image_size",
+              "value": "720x1280"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "nodo-kling",
+      "name": "Generar Video Kling AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [650, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.tipo }}",
+              "operation": "contains",
+              "value2": "video"
+            }
+          ]
+        }
+      },
+      "id": "switch-tipo-video",
+      "name": "Es Video?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [850, 150]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false
+          },
+          "string": [
+            {
+              "value1": "={{ $json.objetivo }}",
+              "operation": "equals",
+              "value2": "venta"
+            }
+          ]
+        }
+      },
+      "id": "switch-meta-ads",
+      "name": "Meta Ads o Orgánico",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "mediaType": "IMAGE",
+        "mediaUrl": "={{ $json.imageUrl }}",
+        "caption": "={{ $json.copy }}",
+        "additionalFields": {
+          "access_token": "={{ $env.META_ACCESS_TOKEN }}"
+        }
+      },
+      "id": "nodo-instagram-organico",
+      "name": "Publicar Instagram Orgánico",
+      "type": "n8n-nodes-base.instagramBusiness",
+      "typeVersion": 1.2,
+      "position": [1250, 200],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "mediaType": "VIDEO",
+        "mediaUrl": "={{ $json.videoUrl }}",
+        "caption": "={{ $json.copy }}",
+        "additionalFields": {
+          "access_token": "={{ $env.META_ACCESS_TOKEN }}"
+        }
+      },
+      "id": "nodo-instagram-video",
+      "name": "Publicar Instagram Video",
+      "type": "n8n-nodes-base.instagramBusiness",
+      "typeVersion": 1.2,
+      "position": [1250, 350],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "mediaUrl": "={{ $json.imageUrl }}",
+        "additionalFields": {
+          "access_token": "={{ $env.META_ACCESS_TOKEN }}",
+          "message": "={{ $json.copy }}"
+        }
+      },
+      "id": "nodo-meta-ads",
+      "name": "Subir a Meta Ads Library",
+      "type": "n8n-nodes-base.facebookAds",
+      "typeVersion": 2,
+      "position": [1250, 500],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "post",
+        "text": "={{ $json.copy }}",
+        "additionalFields": {
+          "access_token": "={{ $env.TIKTOK_ACCESS_TOKEN }}"
+        }
+      },
+      "id": "nodo-tiktok",
+      "name": "Publicar TikTok",
+      "type": "n8n-nodes-base.tiktok",
+      "typeVersion": 1,
+      "position": [1450, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "message": "✅ Contenido publicado exitosamente\n\nTipo: {{ $json.tipo }}\nObjetivo: {{ $json.objetivo }}\n📱 Instagram: {{ $json.instagramUrl }}\n🎵 TikTok: {{ $json.tiktokUrl }}",
+        "additionalFields": {}
+      },
+      "id": "nodo-whatsapp",
+      "name": "Notificar WhatsApp",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [1650, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "nodo-respuesta",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 3,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "errorMessage": "Error: {{ $json.message }}",
+        "respondWith": "json",
+        "responseBody": {
+          "success": false,
+          "error": "={{ $json.message }}"
+        }
+      },
+      "id": "nodo-error",
+      "name": "Manejo de Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 3,
+      "position": [1850, 500]
+    }
+  ],
+  "connections": {
+    "Webhook Entrada": {
+      "main": [[
+        {
+          "node": "Switch Acción",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Switch Acción": {
+      "main": [[
+        {
+          "node": "Generar Imagen Pollinations",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Generar Imagen Pollinations": {
+      "main": [[
+        {
+          "node": "Es Video?",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Es Video?": {
+      "main": [[
+        {
+          "node": "Generar Video Kling AI",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Generar Video Kling AI": {
+      "main": [[
+        {
+          "node": "Meta Ads o Orgánico",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Meta Ads o Orgánico": {
+      "main": [[
+        {
+          "node": "Publicar Instagram Orgánico",
+          "type": "main",
+          "index": 0
+        },
+        {
+          "node": "Subir a Meta Ads Library",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Publicar Instagram Orgánico": {
+      "main": [[
+        {
+          "node": "Publicar TikTok",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Publicar TikTok": {
+      "main": [[
+        {
+          "node": "Notificar WhatsApp",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Notificar WhatsApp": {
+      "main": [[
+        {
+          "node": "Responder",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["marketing", "creser", "instagram", "tiktok"],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-17T00:00:00.000Z",
+  "versionId": "1"
+}
