@@ -195,7 +195,7 @@ export default function ContentGenerator() {
           setGeneratedImage(data.data.imageUrl)
         }
       } else {
-        generateLocalContent()
+        alert('Error: ' + (data.error || data.message || 'Sin respuesta del servidor'))
       }
     } catch (error) {
       console.error('Error generating content:', error)
@@ -203,37 +203,6 @@ export default function ContentGenerator() {
     } finally {
       setGenerating(false)
     }
-  }
-
-  const generateLocalContent = () => {
-    const serviceData = templatesByService[formData.service] || templatesByService['Fonoaudiología']
-    const randomHook = serviceData.hooks[Math.floor(Math.random() * serviceData.hooks.length)]
-    const hashtags = hashtagsByService[formData.service] || hashtagsByService['Fonoaudiología']
-    
-    let copy = ''
-    
-    if (formData.contentType === 'post') {
-      copy = `${randomHook}\n\nEn CreSer, nuestro equipo interdisciplinario trabaja día a día para ayudar a niños y familias a alcanzar su máximo potencial en ${formData.service.toLowerCase()}.\n\n✨ Contamos con profesionales especializados\n✨ Modalidad presencial y online\n✨ Ambiente cálido y profesional\n\n💬 ¿Te gustaría más información? Escríbenos\n\n${hashtags.slice(0, 5).join(' ')}`
-    } else if (formData.contentType === 'carousel') {
-      copy = `📚 CAROUSEL: ${formData.topic || serviceData.topics[0]}\n\n1/5 ¿Qué es ${formData.service}?\n2/5 Señales de alerta\n3/5 Cómo podemos ayudar\n4/5 Casos de éxito\n5/5 Contáctanos\n\n${hashtags.slice(0, 4).join(' ')}`
-    } else if (formData.contentType === 'reel') {
-      copy = `🎬 ${randomHook}\n\n(sigue para más info)\n\n🐦 En CreSer ayudamos a familias como la tuya\n\n💬 DM para más información\n\n${hashtags.slice(0, 6).join(' ')}`
-    } else {
-      copy = `${randomHook}\n\n💬 Escríbenos para más info\n\n${hashtags.slice(0, 5).join(' ')}`
-    }
-    
-    const content = {
-      copy,
-      hashtags,
-      topic: formData.topic || serviceData.topics[0],
-      service: formData.service,
-      platform: formData.platform,
-      type: formData.contentType,
-      createdAt: new Date().toISOString()
-    }
-    
-    setGeneratedContent(content)
-    setGenerated(true)
   }
 
   const handleCopy = (text) => {
