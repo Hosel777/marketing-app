@@ -63,6 +63,18 @@ const integrations = [
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('general')
   const [saved, setSaved] = useState(false)
+  const [logoPreview, setLogoPreview] = useState(null)
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setLogoPreview(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   const [institutionData, setInstitutionData] = useState({
     nombre: 'CreSer Equipo Interdisciplinario',
@@ -140,13 +152,23 @@ export default function Settings() {
                 </h3>
                 
                 <div className="flex items-center gap-6 mb-6">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-creser-yellow via-creser-mint to-creser-pink flex items-center justify-center">
-                    <span className="text-3xl">🐦</span>
+                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-creser-yellow via-creser-mint to-creser-pink flex items-center justify-center overflow-hidden">
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="Logo" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-3xl">🐦</span>
+                    )}
                   </div>
-                  <button className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-creser-text hover:bg-gray-50 transition-colors">
+                  <label className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-creser-text hover:bg-gray-50 transition-colors cursor-pointer">
                     <Camera className="w-4 h-4" />
                     Cambiar logo
-                  </button>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
