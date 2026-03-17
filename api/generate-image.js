@@ -21,7 +21,7 @@ export default async function handler(req, res) {
 
   try {
     const response = await axios.post(
-      'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large',
+      'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
       { inputs: hfPrompt, parameters: { width, height } },
       {
         headers: {

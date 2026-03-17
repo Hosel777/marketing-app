@@ -81,7 +81,7 @@ Máximo 150 palabras.`
 
   try {
     const response = await axios.post(
-      'https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct',
+      'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2',
       {
         inputs: systemPrompt,
         parameters: {
