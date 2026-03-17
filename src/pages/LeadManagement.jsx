@@ -1,8 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Search, 
-  Filter, 
   Download, 
   MoreVertical,
   Phone,
@@ -11,65 +10,50 @@ import {
   TrendingUp,
   Users,
   Clock,
-  CheckCircle,
-  XCircle,
-  ArrowUpRight,
-  Smile,
-  Meh,
-  Frown
+  RefreshCw
 } from 'lucide-react'
-
-const leads = [
-  { id: 1, nombre: 'María González', email: 'maria.g@gmail.com', telefono: '351-876-3956', servicio: 'Fonoaudiología', fuente: 'Instagram', fecha: '2024-03-15', estado: 'nuevo', sentiment: 85, edad: 5, observaciones: 'Recomendada por amiga' },
-  { id: 2, nombre: 'Carlos Rodríguez', email: 'carlos.r@gmail.com', telefono: '351-123-4567', servicio: 'Psicología', fuente: 'WhatsApp', fecha: '2024-03-14', estado: 'contactado', sentiment: 72, edad: 8, observaciones: 'Interesado en terapia online' },
-  { id: 3, nombre: 'Ana Martínez', email: 'ana.m@gmail.com', telefono: '351-987-6543', servicio: 'Apoyo Escolar', fuente: 'Facebook', fecha: '2024-03-14', estado: 'nuevo', sentiment: 90, edad: 10, observaciones: 'Necesita ayuda con matemáticas' },
-  { id: 4, nombre: 'Luis Pérez', email: 'luis.p@gmail.com', telefono: '351-456-7890', servicio: 'Neuropsicología', fuente: 'Google', fecha: '2024-03-13', estado: 'citado', sentiment: 65, edad: 12, observaciones: 'Evaluación por problemas de aprendizaje' },
-  { id: 5, nombre: 'Sofia Lima', email: 'sofia.l@gmail.com', telefono: '351-321-0987', servicio: 'Psicomotricidad', fuente: 'Instagram', fecha: '2024-03-13', estado: 'convertido', sentiment: 95, edad: 4, observaciones: 'Ya tiene 3 sesiones programadas' },
-  { id: 6, nombre: 'Javier Torres', email: 'javier.t@gmail.com', telefono: '351-654-3210', servicio: 'Psicología', fuente: 'Referido', fecha: '2024-03-12', estado: 'perdido', sentiment: 30, edad: 35, observaciones: 'No respondió al seguimiento' },
-  { id: 7, nombre: 'Carolina Ruiz', email: 'carolina.r@gmail.com', telefono: '351-789-0123', servicio: 'Fonoaudiología', fuente: 'WhatsApp', fecha: '2024-03-12', estado: 'nuevo', sentiment: 88, edad: 6, observaciones: 'Primera vez que consulta' },
-  { id: 8, nombre: 'Martín Díaz', email: 'martin.d@gmail.com', telefono: '351-234-5678', servicio: 'Inclusión Educativa', fuente: 'Facebook', fecha: '2024-03-11', estado: 'contactado', sentiment: 75, edad: 9, observaciones: 'Necesita apoyo escolar' },
-]
+import { getLeads } from '../services/supabase'
 
 const filters = {
-  servicios: ['Todos', 'Fonoaudiología', 'Psicología', 'Psicomotricidad', 'Neuropsicología', 'Inclusión Educativa', 'Apoyo Escolar'],
+  servicios: ['Todos', 'Fonoaudiología', 'Psicología', 'Psicomotricidad', 'Evaluación Neuropsicológica', 'Inclusión Educativa', 'Apoyo Escolar'],
   estados: ['Todos', 'nuevo', 'contactado', 'citado', 'convertido', 'perdido'],
   fuentes: ['Todos', 'Instagram', 'Facebook', 'WhatsApp', 'Google', 'Referido'],
 }
 
-const stats = [
-  { label: 'Total Leads', value: '247', icon: Users, color: 'bg-creser-mint' },
-  { label: 'Nuevos (7 días)', value: '47', icon: TrendingUp, color: 'bg-creser-yellow' },
-  { label: 'Contactados', value: '89', icon: Phone, color: 'bg-creser-blue' },
-  { label: 'Convertidos', value: '28', icon: CheckCircle, color: 'bg-creser-pink' },
-]
-
 export default function LeadManagement() {
+  const [leads, setLeads] = useState([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterServicio, setFilterServicio] = useState('Todos')
   const [filterEstado, setFilterEstado] = useState('Todos')
   const [filterFuente, setFilterFuente] = useState('Todos')
-  const [selectedLeads, setSelectedLeads] = useState([])
+
+  const fetchLeads = async () => {
+    setLoading(true)
+    const { data } = await getLeads()
+    setLeads(data)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchLeads()
+  }, [])
 
   const filteredLeads = leads.filter(lead => {
-    const matchesSearch = lead.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lead.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesServicio = filterServicio === 'Todos' || lead.servicio === filterServicio
+    const matchesSearch = lead.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         lead.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesServicio = filterServicio === 'Todos' || lead.servicio_interes === filterServicio
     const matchesEstado = filterEstado === 'Todos' || lead.estado === filterEstado
     const matchesFuente = filterFuente === 'Todos' || lead.fuente === filterFuente
     return matchesSearch && matchesServicio && matchesEstado && matchesFuente
   })
 
-  const getSentimentIcon = (score) => {
-    if (score >= 70) return <Smile className="w-4 h-4 text-green-600" />
-    if (score >= 40) return <Meh className="w-4 h-4 text-yellow-600" />
-    return <Frown className="w-4 h-4 text-red-600" />
-  }
-
-  const getSentimentColor = (score) => {
-    if (score >= 70) return 'bg-green-100'
-    if (score >= 40) return 'bg-yellow-100'
-    return 'bg-red-100'
-  }
+  const stats = [
+    { label: 'Total Leads', value: leads.length.toString(), icon: Users, color: 'bg-creser-mint' },
+    { label: 'Nuevos (7 días)', value: leads.filter(l => l.estado === 'nuevo').length.toString(), icon: TrendingUp, color: 'bg-creser-yellow' },
+    { label: 'Contactados', value: leads.filter(l => l.estado === 'contactado').length.toString(), icon: Phone, color: 'bg-creser-blue' },
+    { label: 'Convertidos', value: leads.filter(l => l.estado === 'convertido').length.toString(), icon: Users, color: 'bg-creser-pink' },
+  ]
 
   const getEstadoColor = (estado) => {
     switch(estado) {
@@ -80,6 +64,12 @@ export default function LeadManagement() {
       case 'perdido': return 'bg-red-100 text-red-700'
       default: return 'bg-gray-100 text-gray-700'
     }
+  }
+
+  const getSentimentColor = (score) => {
+    if (score >= 70) return 'bg-green-100'
+    if (score >= 40) return 'bg-yellow-100'
+    return 'bg-red-100'
   }
 
   return (
@@ -97,9 +87,12 @@ export default function LeadManagement() {
             Administra y haz seguimiento de tus prospectos
           </p>
         </div>
-        <button className="flex items-center gap-2 px-6 py-3 bg-creser-mint text-creser-text font-semibold rounded-xl hover:bg-creser-mint/80 transition-colors">
-          <Download className="w-5 h-5" />
-          Exportar CSV
+        <button 
+          onClick={fetchLeads}
+          className="flex items-center gap-2 px-4 py-2 bg-creser-mint text-creser-text font-semibold rounded-xl hover:bg-creser-mint/80 transition-colors"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          Actualizar
         </button>
       </motion.div>
 
@@ -111,10 +104,8 @@ export default function LeadManagement() {
       >
         {stats.map((stat, index) => (
           <div key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl ${stat.color} flex items-center justify-center`}>
-                <stat.icon className="w-5 h-5 text-creser-text" />
-              </div>
+            <div className={`w-10 h-10 rounded-xl ${stat.color} flex items-center justify-center mb-3`}>
+              <stat.icon className="w-5 h-5 text-creser-text" />
             </div>
             <p className="text-2xl font-bold text-creser-text">{stat.value}</p>
             <p className="text-sm text-creser-text-light">{stat.label}</p>
@@ -166,77 +157,84 @@ export default function LeadManagement() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Lead</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Servicio</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Fuente</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Estado</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Sentimiento</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Fecha</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filteredLeads.map((lead) => (
-                <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div>
-                      <p className="font-medium text-creser-text">{lead.nombre}</p>
-                      <p className="text-sm text-creser-text-light">{lead.email}</p>
-                      <p className="text-xs text-creser-text-light">Edad: {lead.edad} años</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-3 py-1 bg-creser-mint/30 rounded-full text-sm text-creser-text">
-                      {lead.servicio}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-creser-text-light">
-                    {lead.fuente}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEstadoColor(lead.estado)}`}>
-                      {lead.estado}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <div className={`px-2 py-1 rounded-lg ${getSentimentColor(lead.sentiment)} flex items-center gap-1`}>
-                        {getSentimentIcon(lead.sentiment)}
-                        <span className="text-sm font-medium">{lead.sentiment}%</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-creser-text-light">
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {lead.fecha}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="WhatsApp">
-                        <MessageCircle className="w-4 h-4 text-green-600" />
-                      </button>
-                      <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Email">
-                        <Mail className="w-4 h-4 text-blue-600" />
-                      </button>
-                      <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Llamar">
-                        <Phone className="w-4 h-4 text-creser-text" />
-                      </button>
-                      <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                        <MoreVertical className="w-4 h-4 text-creser-text-light" />
-                      </button>
-                    </div>
-                  </td>
+        {loading ? (
+          <div className="p-12 text-center">
+            <RefreshCw className="w-8 h-8 mx-auto animate-spin text-creser-mint" />
+            <p className="mt-4 text-creser-text-light">Cargando leads...</p>
+          </div>
+        ) : filteredLeads.length === 0 ? (
+          <div className="p-12 text-center">
+            <Users className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+            <p className="text-creser-text-light">No hay leads aún</p>
+            <p className="text-sm text-creser-text-light mt-1">Los leads aparecerán cuando alguien complete un formulario</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Lead</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Servicio</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Fuente</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Estado</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Sentimiento</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Fecha</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-creser-text">Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredLeads.map((lead) => (
+                  <tr key={lead.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="font-medium text-creser-text">{lead.nombre}</p>
+                        <p className="text-sm text-creser-text-light">{lead.email}</p>
+                        <p className="text-xs text-creser-text-light">Edad: {lead.edad_paciente || '-'} años</p>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="px-3 py-1 bg-creser-mint/30 rounded-full text-sm text-creser-text">
+                        {lead.servicio_interes || 'No especificado'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-creser-text-light">
+                      {lead.fuente || 'web'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEstadoColor(lead.estado)}`}>
+                        {lead.estado || 'nuevo'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className={`px-2 py-1 rounded-lg ${getSentimentColor(lead.sentiment_score)} flex items-center gap-1 w-fit`}>
+                        <span className="text-sm font-medium">{lead.sentiment_score || 50}%</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-creser-text-light">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        {lead.created_at ? new Date(lead.created_at).toLocaleDateString('es-AR') : '-'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <a href={`tel:${lead.telefono}`} className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Llamar">
+                          <Phone className="w-4 h-4 text-creser-text" />
+                        </a>
+                        <a href={`mailto:${lead.email}`} className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Email">
+                          <Mail className="w-4 h-4 text-blue-600" />
+                        </a>
+                        <a href={`https://wa.me/${lead.telefono?.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="WhatsApp">
+                          <MessageCircle className="w-4 h-4 text-green-600" />
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         <div className="p-6 border-t border-gray-100">
           <p className="text-sm text-creser-text-light">
