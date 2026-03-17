@@ -12,16 +12,18 @@ function App() {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="flex-1 ml-64 p-8">
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/generador-contenido" element={<ContentGenerator />} />
-          <Route path="/leads" element={<LeadManagement />} />
-          <Route path="/calendario" element={<Calendar />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/redes-sociales" element={<SocialMedia />} />
-          <Route path="/configuracion" element={<Settings />} />
-        </Routes>
+      <main className="flex-1 w-full min-h-screen md:ml-64">
+        <div className="p-4 md:p-8">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/generador-contenido" element={<ContentGenerator />} />
+            <Route path="/leads" element={<LeadManagement />} />
+            <Route path="/calendario" element={<Calendar />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/redes-sociales" element={<SocialMedia />} />
+            <Route path="/configuracion" element={<Settings />} />
+          </Routes>
+        </div>
       </main>
     </div>
   )
