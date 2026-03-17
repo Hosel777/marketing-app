@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-const OLLAMA_BASE_URL = 'https://api.ollama.ai/v1'
-const OLLAMA_API_KEY = '03416952ef254588963b3ff29879cb56.eCj3F-Pimc7ZguTEo5Vqa6_n'
+const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'https://api.ollama.ai/v1'
+const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY
 const POLLINATIONS_URL = 'https://text.pollinations.ai'
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL
 

@@ -164,50 +164,36 @@ export default function ContentGenerator() {
     setGenerated(false)
     
     try {
-      if (window.puter && window.puter.ai) {
-        const toneNames = {
-          'profesional': 'formal pero accesible',
-          'cálido': 'empático y cercano',
-          'educativo': 'informativo y claro',
-          'motivacional': 'inspirador y positivo'
-        }
-        
-        const serviceInfo = {
-          'Fonoaudiología': 'desarrollo del lenguaje y comunicación en niños',
-          'Psicología': 'salud mental y bienestar emocional infantil',
-          'Psicomotricidad': 'desarrollo motor y coordinación en niños',
-          'Evaluación Neuropsicológica': 'evaluaciones cognitivas y de aprendizaje',
-          'Inclusión Educativa': 'apoyo a estudiantes con NEE',
-          'Apoyo Escolar': 'refuerzo académico y métodos de estudio'
-        }
-        
-        const tipoText = formData.contentType === 'post' ? 'post para Instagram' : 
-                        formData.contentType === 'carousel' ? 'carousel educativo para Instagram' :
-                        formData.contentType === 'reel' ? 'script para Reel/TikTok' : 'Story para Instagram'
-        
-        const prompt = `Genera un ${tipoText} sobre ${formData.service} (${serviceInfo[formData.service]}). 
-Tono: ${toneNames[formData.tone] || toneNames['cálido']}.
-Contexto: CreSer es un centro terapéutico-educativo interdisciplinario en Córdoba, Argentina.
-Incluye: gancho emocional, problema común, cómo CreSer puede ayudar, llamado a la acción, emojis y hashtags en español.
-Máximo 200 palabras.`
-        
-        const response = await window.puter.ai.chat(prompt)
-        const text = response.message.content
-        
-        const hashtags = text.match(/#[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ]+/g) || [
-          `#${formData.service.replace(' ', '')}`, '#CreSer', '#Córdoba', '#Argentina'
-        ]
-        
+      const response = await fetch('/api/generar-contenido', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: formData.contentType,
+          servicio: formData.service,
+          tono: formData.tone,
+          objetivo: 'engagement',
+          generarImagen: true
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success && data.data) {
         setGeneratedContent({
-          copy: text,
-          hashtags: [...new Set(hashtags)].slice(0, 10),
-          topic: `Contenido sobre ${formData.service}`,
-          service: formData.service,
+          copy: data.data.copy,
+          hashtags: data.data.hashtags || [],
+          topic: data.data.topic,
+          service: data.data.servicio,
           platform: formData.platform,
           type: formData.contentType,
+          promptVisual: data.data.promptVisual,
           createdAt: new Date().toISOString()
         })
         setGenerated(true)
+        
+        if (data.data.imageUrl) {
+          setGeneratedImage(data.data.imageUrl)
+        }
       } else {
         generateLocalContent()
       }
