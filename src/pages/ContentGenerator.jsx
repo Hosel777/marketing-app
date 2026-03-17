@@ -199,7 +199,7 @@ export default function ContentGenerator() {
       }
     } catch (error) {
       console.error('Error generating content:', error)
-      generateLocalContent()
+      alert('Error conectando con el servidor de IA. Verifica que las variables de entorno estén configuradas en Vercel.')
     } finally {
       setGenerating(false)
     }

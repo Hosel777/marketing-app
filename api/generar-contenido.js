@@ -74,10 +74,10 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('Error en generación:', error.message)
-    return res.status(200).json({
+    return res.status(500).json({
       success: false,
       error: error.message,
-      fallback: await generarContenidoLocal(servicio, tipo)
+      message: 'Error conectando con Ollama. Verifica las variables de entorno OLLAMA_BASE_URL y OLLAMA_API_KEY.'
     })
   }
 }
