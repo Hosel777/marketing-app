@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434'
+const OLLAMA_BASE_URL = 'https://api.ollama.ai/v1'
+const OLLAMA_API_KEY = '03416952ef254588963b3ff29879cb56.eCj3F-Pimc7ZguTEo5Vqa6_n'
 const POLLINATIONS_URL = 'https://text.pollinations.ai'
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL
 
@@ -130,25 +131,23 @@ Devuelve en formato JSON con campos: copy, hashtags (array), topic (título cort
 
   try {
     const response = await axios.post(
-      `${OLLAMA_BASE_URL}/api/generate`,
+      `${OLLAMA_BASE_URL}/chat/completions`,
       {
-        model: 'llama3.2',
-        prompt: prompt,
-        stream: false,
-        format: 'json',
-        options: {
-          temperature: 0.8,
-          top_p: 0.9,
-          max_tokens: 1000
-        }
+        model: 'llama-3.2-90b-text-preview',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.8,
+        max_tokens: 1000
       },
       {
         timeout: 120000,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OLLAMA_API_KEY}`
+        }
       }
     )
 
-    const responseText = response.data.response
+    const responseText = response.data.choices?.[0]?.message?.content || ''
     const jsonMatch = responseText.match(/\{[\s\S]*\}/)
     
     if (jsonMatch) {
@@ -182,23 +181,10 @@ async function generarImagenIA(promptVisual) {
   try {
     const prompt = `${promptVisual}, professional colorful illustration, modern pastel colors (yellow, mint green, soft pink), warm healthcare theme for children, high quality, detailed, no text, 4k`
     
-    const response = await axios.get(POLLINATIONS_URL, {
-      params: {
-        prompt: prompt,
-        width: 1080,
-        height: 1350,
-        model: 'flux',
-        nologo: true,
-        seed: Math.floor(Math.random() * 100000)
-      },
-      timeout: 60000
-    })
-
-    if (response.request.res.responseUrl) {
-      return response.request.res.responseUrl
-    }
-
-    return `${POLLINATIONS_URL}?prompt=${encodeURIComponent(prompt)}&width=1080&height=1350`
+    const encodedPrompt = encodeURIComponent(prompt)
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1080&height=1350&nologo=true&seed=${Math.floor(Math.random() * 100000)}`
+    
+    return imageUrl
 
   } catch (error) {
     console.error('Pollinations error:', error.message)
