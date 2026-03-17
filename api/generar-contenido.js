@@ -1,7 +1,6 @@
 import axios from 'axios'
 
-const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'https://api.ollama.ai/v1'
-// Force rebuild
+const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || 'https://ollama.com/api'
 const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY
 const POLLINATIONS_URL = 'https://text.pollinations.ai'
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL
@@ -132,23 +131,27 @@ Devuelve en formato JSON con campos: copy, hashtags (array), topic (título cort
 
   try {
     const response = await axios.post(
-      `${OLLAMA_BASE_URL}/chat/completions`,
+      `${OLLAMA_BASE_URL}/generate`,
       {
-        model: 'llama-3.2-90b-text-preview',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.8,
-        max_tokens: 1000
+        model: 'llama3.2',
+        prompt: prompt,
+        stream: false,
+        format: 'json',
+        options: {
+          temperature: 0.8,
+          top_p: 0.9,
+          max_tokens: 1000
+        }
       },
       {
         timeout: 120000,
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${OLLAMA_API_KEY}`
+          'Content-Type': 'application/json'
         }
       }
     )
 
-    const responseText = response.data.choices?.[0]?.message?.content || ''
+    const responseText = response.data.response || ''
     const jsonMatch = responseText.match(/\{[\s\S]*\}/)
     
     if (jsonMatch) {
@@ -159,7 +162,7 @@ Devuelve en formato JSON con campos: copy, hashtags (array), topic (título cort
 
   } catch (error) {
     console.error('Ollama error:', error.message)
-    return generarContenidoLocal(servicio, tipo)
+    throw new Error('Error conectando con Ollama: ' + error.message)
   }
 }
 
