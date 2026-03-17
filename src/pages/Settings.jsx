@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   User, 
@@ -97,9 +97,27 @@ export default function Settings() {
   })
 
   const handleSave = () => {
+    localStorage.setItem('creser_institution_data', JSON.stringify(institutionData))
+    localStorage.setItem('creser_notifications', JSON.stringify(notifications))
+    localStorage.setItem('creser_logo', logoPreview || '')
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
+
+  useEffect(() => {
+    const savedData = localStorage.getItem('creser_institution_data')
+    if (savedData) {
+      setInstitutionData(JSON.parse(savedData))
+    }
+    const savedLogo = localStorage.getItem('creser_logo')
+    if (savedLogo) {
+      setLogoPreview(savedLogo)
+    }
+    const savedNotifications = localStorage.getItem('creser_notifications')
+    if (savedNotifications) {
+      setNotifications(JSON.parse(savedNotifications))
+    }
+  }, [])
 
   return (
     <div className="space-y-8">
