@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   LayoutDashboard, 
@@ -22,6 +23,15 @@ const navItems = [
 ]
 
 export default function Sidebar() {
+  const [logo, setLogo] = useState(null)
+
+  useEffect(() => {
+    const savedLogo = localStorage.getItem('creser_logo')
+    if (savedLogo) {
+      setLogo(savedLogo)
+    }
+  }, [])
+
   return (
     <motion.aside
       initial={{ x: -250 }}
@@ -30,8 +40,12 @@ export default function Sidebar() {
     >
       <div className="p-6 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-creser-yellow via-creser-mint to-creser-pink flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-creser-text" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-creser-yellow via-creser-mint to-creser-pink flex items-center justify-center overflow-hidden">
+            {logo ? (
+              <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+            ) : (
+              <Sparkles className="w-5 h-5 text-creser-text" />
+            )}
           </div>
           <div>
             <h1 className="font-heading font-bold text-lg text-creser-text">CreSer</h1>
