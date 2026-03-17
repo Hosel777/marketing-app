@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Wand2, 
@@ -16,6 +16,8 @@ import {
   RefreshCw,
   Loader2
 } from 'lucide-react'
+
+const puter = window.puter
 
 const contentTypes = [
   { id: 'carousel', label: 'Carousel', icon: FileText },
@@ -162,28 +164,51 @@ export default function ContentGenerator() {
     setGenerated(false)
     
     try {
-      const response = await fetch('/api/generate-content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tipo: formData.contentType,
-          servicio: formData.service,
-          tono: formData.tone,
-          tema: formData.topic
-        })
-      })
-      
-      const data = await response.json()
-      
-      if (data.content) {
+      if (window.puter && window.puter.ai) {
+        const toneNames = {
+          'profesional': 'formal pero accesible',
+          'cálido': 'empático y cercano',
+          'educativo': 'informativo y claro',
+          'motivacional': 'inspirador y positivo'
+        }
+        
+        const serviceInfo = {
+          'Fonoaudiología': 'desarrollo del lenguaje y comunicación en niños',
+          'Psicología': 'salud mental y bienestar emocional infantil',
+          'Psicomotricidad': 'desarrollo motor y coordinación en niños',
+          'Evaluación Neuropsicológica': 'evaluaciones cognitivas y de aprendizaje',
+          'Inclusión Educativa': 'apoyo a estudiantes con NEE',
+          'Apoyo Escolar': 'refuerzo académico y métodos de estudio'
+        }
+        
+        const tipoText = formData.contentType === 'post' ? 'post para Instagram' : 
+                        formData.contentType === 'carousel' ? 'carousel educativo para Instagram' :
+                        formData.contentType === 'reel' ? 'script para Reel/TikTok' : 'Story para Instagram'
+        
+        const prompt = `Genera un ${tipoText} sobre ${formData.service} (${serviceInfo[formData.service]}). 
+Tono: ${toneNames[formData.tone] || toneNames['cálido']}.
+Contexto: CreSer es un centro terapéutico-educativo interdisciplinario en Córdoba, Argentina.
+Incluye: gancho emocional, problema común, cómo CreSer puede ayudar, llamado a la acción, emojis y hashtags en español.
+Máximo 200 palabras.`
+        
+        const response = await window.puter.ai.chat(prompt)
+        const text = response.message.content
+        
+        const hashtags = text.match(/#[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ]+/g) || [
+          `#${formData.service.replace(' ', '')}`, '#CreSer', '#Córdoba', '#Argentina'
+        ]
+        
         setGeneratedContent({
-          ...data.content,
+          copy: text,
+          hashtags: [...new Set(hashtags)].slice(0, 10),
+          topic: `Contenido sobre ${formData.service}`,
+          service: formData.service,
           platform: formData.platform,
           type: formData.contentType,
           createdAt: new Date().toISOString()
         })
         setGenerated(true)
-      } else if (data.mock) {
+      } else {
         generateLocalContent()
       }
     } catch (error) {
@@ -236,20 +261,16 @@ export default function ContentGenerator() {
     
     setGeneratingImage(true)
     try {
-      const response = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          prompt: `${generatedContent.service} - ${generatedContent.topic}`,
-          width: 1024,
-          height: 1024
-        })
-      })
-      
-      const data = await response.json()
-      
-      if (data.imageUrl) {
-        setGeneratedImage(data.imageUrl)
+      if (window.puter && window.puter.ai) {
+        const imagePrompt = `Professional colorful illustration for social media about ${generatedContent.service}: ${generatedContent.topic}. Style: modern pastel colors (yellow, mint green, pink), warm professional healthcare theme for children, high quality, detailed, no text`
+        
+        const image = await window.puter.ai.txt2img(imagePrompt)
+        
+        if (image && image.src) {
+          setGeneratedImage(image.src)
+        } else if (typeof image === 'string') {
+          setGeneratedImage(image)
+        }
       }
     } catch (error) {
       console.error('Error generating image:', error)
