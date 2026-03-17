@@ -151,9 +151,11 @@ export default function ContentGenerator() {
     topic: '',
   })
   const [generating, setGenerating] = useState(false)
+  const [generatingImage, setGeneratingImage] = useState(false)
   const [generated, setGenerated] = useState(false)
   const [copied, setCopied] = useState(false)
   const [generatedContent, setGeneratedContent] = useState(null)
+  const [generatedImage, setGeneratedImage] = useState(null)
 
   const handleGenerate = () => {
     setGenerating(true)
@@ -195,6 +197,41 @@ export default function ContentGenerator() {
     navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleGenerateImage = async () => {
+    if (!generatedContent) return
+    
+    setGeneratingImage(true)
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          prompt: `${generatedContent.service} - ${generatedContent.topic}`,
+          width: 1024,
+          height: 1024
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (data.imageUrl) {
+        setGeneratedImage(data.imageUrl)
+      }
+    } catch (error) {
+      console.error('Error generating image:', error)
+    } finally {
+      setGeneratingImage(false)
+    }
+  }
+
+  const handleDownloadImage = () => {
+    if (!generatedImage) return
+    const link = document.createElement('a')
+    link.href = generatedImage
+    link.download = `creser-${generatedContent?.service?.toLowerCase()}-${Date.now()}.png`
+    link.click()
   }
 
   return (
@@ -370,6 +407,46 @@ export default function ContentGenerator() {
                   ))}
                 </div>
               </div>
+
+              {generatedImage && (
+                <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-heading text-lg font-semibold text-creser-text">
+                      Imagen Generada
+                    </h3>
+                    <button
+                      onClick={handleDownloadImage}
+                      className="flex items-center gap-2 px-4 py-2 bg-creser-mint rounded-lg text-sm font-medium hover:bg-creser-mint/80 transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                      Descargar
+                    </button>
+                  </div>
+                  <img 
+                    src={generatedImage} 
+                    alt="Imagen generada" 
+                    className="w-full rounded-xl"
+                  />
+                </div>
+              )}
+
+              <button
+                onClick={handleGenerateImage}
+                disabled={generatingImage || !generatedContent}
+                className="w-full py-4 bg-gradient-to-r from-creser-pink via-creser-yellow to-creser-mint rounded-xl font-semibold text-creser-text flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
+              >
+                {generatingImage ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Generando imagen...
+                  </>
+                ) : (
+                  <>
+                    <Image className="w-5 h-5" />
+                    Generar Imagen con IA
+                  </>
+                )}
+              </button>
 
               <div className="bg-gradient-to-r from-creser-yellow/50 to-creser-mint/50 rounded-2xl p-4 md:p-6">
                 <h3 className="font-heading text-lg font-semibold text-creser-text mb-2">

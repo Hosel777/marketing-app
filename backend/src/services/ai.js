@@ -1,6 +1,7 @@
 import axios from 'axios'
 
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview:generateContent'
+const HF_API_URL = 'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large'
 
 const SERVICE_TONES = {
   'profesional': 'Formal pero accesible, utilizando terminología profesional de manera clara',
@@ -241,7 +242,9 @@ function generateMockTopic(servicio) {
 export async function generateImage(prompt, options = {}) {
   const { width = 1024, height = 1024 } = options
 
-  if (!process.env.GEMINI_API_KEY) {
+  const hfPrompt = `Professional and colorful illustration for social media about: ${prompt}. Style: modern illustration, pastel colors (yellow, mint green, pink, light blue), warm and professional style, no text in the image, high quality, detailed.`
+
+  if (!process.env.HUGGINGFACE_API_KEY) {
     return {
       mock: true,
       imageUrl: null,
@@ -251,27 +254,27 @@ export async function generateImage(prompt, options = {}) {
 
   try {
     const response = await axios.post(
-      `${GEMINI_API_URL}?key=${process.env.GEMINI_API_KEY}`,
+      HF_API_URL,
+      { inputs: hfPrompt, parameters: { width, height } },
       {
-        contents: [{
-          parts: [{
-            text: `Genera una imagen profesional y colorida para redes sociales sobre: ${prompt}. Estilo: ilustración moderna, colores pastel (amarillo, verde menta, rosa, azul claro), estilo cálido y profesional, sin texto en la imagen.`
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 1024,
-          responseModalities: ["image", "text"]
-        }
+        headers: {
+          'Authorization': `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        responseType: 'arraybuffer'
       }
     )
 
+    const base64Image = Buffer.from(response.data).toString('base64')
+    const imageUrl = `data:image/png;base64,${base64Image}`
+
     return {
-      imageUrl: response.data.candidates?.[0]?.content?.parts?.[0]?.image?.url || null
+      imageUrl,
+      success: true
     }
   } catch (error) {
     console.error('Error generating image:', error.message)
-    return { error: error.message }
+    return { error: error.message, mock: true }
   }
 }
 
