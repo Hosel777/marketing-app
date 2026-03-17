@@ -1,0 +1,193 @@
+{
+  "name": "CreSer - Recordatorio de Citas",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Ejecutar Daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": "appointments",
+        "conditions": {
+          "conditions": [
+            {
+              "column": "fecha",
+              "operator": "equals",
+              "value": "={{ $now.plus(1, \"days\").toDate().toISOString().split(\"T\")[0] }}"
+            },
+            {
+              "column": "recordatorio_enviado",
+              "operator": "equals",
+              "value": false
+            }
+          ]
+        }
+      },
+      "id": "get-appointments",
+      "name": "Obtener Citas de Mañana",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": "leads",
+        "conditions": {
+          "conditions": [
+            {
+              "column": "id",
+              "operator": "equals",
+              "value": "={{ $json.lead_id }}"
+            }
+          ]
+        }
+      },
+      "id": "get-lead",
+      "name": "Obtener Datos del Lead",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.whatsapp.com/v17.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "messaging_product",
+              "value": "whatsapp"
+            },
+            {
+              "name": "to",
+              "value": "={{ $json.telefono.replace(/[^0-9]/g, '') }}"
+            },
+            {
+              "name": "type",
+              "value": "text"
+            },
+            {
+              "name": "text",
+              "value": {
+                "body": "=¡Hola {{ $json.nombre }}! 📅\n\nTe recordamos que tienes una cita mañana en CreSer:\n\n📅 Fecha: {{ $json.fecha }}\n🕐 Hora: {{ $json.hora }}\n📍 Niceto Vega 1844, Córdoba\n\n¿Necesitas reprogramar? Contáctanos con anticipación.\n\n¡Nos vemos pronto! 🐦"
+              }
+            }
+          ]
+        }
+      },
+      "id": "send-reminder",
+      "name": "Enviar Recordatorio WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "table": "appointments",
+        "updateColumns": {
+          "recordatorio_enviado": true
+        },
+        "conditions": {
+          "conditions": [
+            {
+              "column": "id",
+              "operator": "equals",
+              "value": "={{ $json.id }}"
+            }
+          ]
+        }
+      },
+      "id": "mark-sent",
+      "name": "Marcar como Enviado",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Ejecutar Daily": {
+      "main": [
+        [
+          {
+            "node": "Obtener Citas de Mañana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Citas de Mañana": {
+      "main": [
+        [
+          {
+            "node": "Obtener Datos del Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener Datos del Lead": {
+      "main": [
+        [
+          {
+            "node": "Enviar Recordatorio WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Recordatorio WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Marcar como Enviado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["creser", "citas", "reminders"],
+  "triggerCount": 1,
+  "updatedAt": "2024-03-17T00:00:00.000Z",
+  "versionId": "1"
+}

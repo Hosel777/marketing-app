@@ -1,0 +1,176 @@
+{
+  "name": "CreSer - Nuevo Lead",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-lead",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook - Nuevo Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "creser-new-lead"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "leads",
+        "columns": {
+          "nombre": "={{ $json.nombre }}",
+          "email": "={{ $json.email }}",
+          "telefono": "={{ $json.telefono }}",
+          "servicio_interes": "={{ $json.servicio_interes }}",
+          "fuente": "={{ $json.fuente || 'web' }}",
+          "sentiment_score": "={{ $json.sentiment_score || 50 }}",
+          "estado": "nuevo"
+        }
+      },
+      "id": "supabase-insert",
+      "name": "Guardar en Supabase",
+      "type": "n8n-nodes-supabase.supabase",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.whatsapp.com/v17.0/{{ $env.WHATSAPP_PHONE_NUMBER_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "method": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $env.WHATSAPP_ACCESS_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "messaging_product",
+              "value": "whatsapp"
+            },
+            {
+              "name": "to",
+              "value": "={{ $json.telefono.replace(/[^0-9]/g, '') }}"
+            },
+            {
+              "name": "type",
+              "value": "text"
+            },
+            {
+              "name": "text",
+              "value": {
+                "body": "=¡Hola {{ $json.nombre }}! 👋\n\nGracias por contactar a CreSer - Equipo Interdisciplinario.\n\nRecibimos tu solicitud sobre {{ $json.servicio_interes }}. Un miembro de nuestro equipo te contactará en las próximas 24 horas.\n\n💬 https://wa.me/5493518763956\n\n¡Te esperamos! 🐦"
+              }
+            }
+          ]
+        }
+      },
+      "id": "whatsapp-welcome",
+      "name": "WhatsApp - Mensaje de Bienvenida",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [650, 200]
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "from": "={{ $env.SMTP_FROM }}",
+        "to": "={{ $json.email }}",
+        "subject": "📥 Gracias por contactar a CreSer",
+        "text": "=Hola {{ $json.nombre }},\n\nGracias por tu interés en CreSer - Equipo Interdisciplinario.\n\nAdjunto encontrarás nuestro recurso sobre {{ $json.servicio_interes }}.\n\n pronto un miembro de nuestro equipo te contactará.\n\nSaludos,\nEquipo CreSer 🐦",
+        "html": "<h1>Hola {{ $json.nombre }},</h1><p>Gracias por tu interés en CreSer.</p><p>Pronto te contactaremos.</p>"
+      },
+      "id": "email-welcome",
+      "name": "Email - Bienvenida",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 3,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "message": "=✅ Nuevo lead recibido:\n\n👤 Nombre: {{ $json.nombre }}\n📞 Teléfono: {{ $json.telefono }}\n📧 Email: {{ $json.email }}\n🩺 Servicio: {{ $json.servicio_interes }}\n📊 Sentimiento: {{ $json.sentiment_score }}%"
+      },
+      "id": "notify-admin",
+      "name": "Notificar Admin",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 3,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "responseData": "success"
+      },
+      "id": "respond-webhook",
+      "name": "Responder Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - Nuevo Lead": {
+      "main": [
+        [
+          {
+            "node": "Guardar en Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en Supabase": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp - Mensaje de Bienvenida",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email - Bienvenida",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notificar Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp - Mensaje de Bienvenida": {
+      "main": [
+        [
+          {
+            "node": "Responder Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["creser", "leads", "automation"],
+  "triggerCount": 1,
+  "updatedAt": "2024-03-17T00:00:00.000Z",
+  "versionId": "1"
+}
