@@ -9,6 +9,5 @@
   ],
   "git": {
     "deploymentBranch": "main"
-  },
-  "nodeVersion": "18"
+  }
 }
