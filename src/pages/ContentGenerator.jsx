@@ -279,6 +279,29 @@ Máximo 200 palabras.`
     }
   }
 
+  const handleGenerateVideo = async () => {
+    if (!generatedContent) return
+    
+    setGeneratingImage(true)
+    try {
+      if (window.puter && window.puter.ai) {
+        const videoPrompt = `Short video clip about ${generatedContent.service}: ${generatedContent.topic}. Professional healthcare theme, children, warm colors, smooth motion, high quality`
+        
+        const video = await window.puter.ai.txt2vid(videoPrompt)
+        
+        if (video && video.src) {
+          setGeneratedImage(video.src)
+        } else if (typeof video === 'string') {
+          setGeneratedImage(video)
+        }
+      }
+    } catch (error) {
+      console.error('Error generating video:', error)
+    } finally {
+      setGeneratingImage(false)
+    }
+  }
+
   const handleDownloadImage = () => {
     if (!generatedImage) return
     const link = document.createElement('a')
@@ -483,23 +506,43 @@ Máximo 200 palabras.`
                 </div>
               )}
 
-              <button
-                onClick={handleGenerateImage}
-                disabled={generatingImage || !generatedContent}
-                className="w-full py-4 bg-gradient-to-r from-creser-pink via-creser-yellow to-creser-mint rounded-xl font-semibold text-creser-text flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
-              >
-                {generatingImage ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Generando imagen...
-                  </>
-                ) : (
-                  <>
-                    <Image className="w-5 h-5" />
-                    Generar Imagen con IA
-                  </>
-                )}
-              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={handleGenerateImage}
+                  disabled={generatingImage || !generatedContent}
+                  className="py-4 bg-gradient-to-r from-creser-pink to-creser-yellow rounded-xl font-semibold text-creser-text flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
+                >
+                  {generatingImage ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Generando...
+                    </>
+                  ) : (
+                    <>
+                      <Image className="w-5 h-5" />
+                      Imagen IA
+                    </>
+                  )}
+                </button>
+                
+                <button
+                  onClick={handleGenerateVideo}
+                  disabled={generatingImage || !generatedContent}
+                  className="py-4 bg-gradient-to-r from-creser-mint to-creser-pink rounded-xl font-semibold text-creser-text flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
+                >
+                  {generatingImage ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Generando...
+                    </>
+                  ) : (
+                    <>
+                      <Video className="w-5 h-5" />
+                      Video IA
+                    </>
+                  )}
+                </button>
+              </div>
 
               <div className="bg-gradient-to-r from-creser-yellow/50 to-creser-mint/50 rounded-2xl p-4 md:p-6">
                 <h3 className="font-heading text-lg font-semibold text-creser-text mb-2">
