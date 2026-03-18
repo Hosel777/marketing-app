@@ -216,24 +216,20 @@ export default function ContentGenerator() {
     
     setGeneratingImage(true)
     try {
-      // Llamar a la API de Ollama para generar imagen
-      const response = await fetch('/api/generar-contenido', {
+      const response = await fetch('/api/generar-imagen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tipo: 'imagen',
-          servicio: generatedContent.service,
-          tono: 'cálido',
-          objetivo: 'engagement'
+          prompt: `${generatedContent.service}: ${generatedContent.topic}. Professional colorful illustration, modern pastel colors, warm healthcare theme for children`
         })
       })
       
       const data = await response.json()
       
-      if (data.success && data.data && data.data.imageUrl) {
-        setGeneratedImage(data.data.imageUrl)
-      } else {
-        alert('La generación de imágenes requiere configuración de n8n. Por ahora puedes usar el copy y hashtags generados.')
+      if (data.imageUrl) {
+        setGeneratedImage(data.imageUrl)
+      } else if (data.error) {
+        alert('Error: ' + data.error)
       }
     } catch (error) {
       console.error('Error generating image:', error)
@@ -246,7 +242,29 @@ export default function ContentGenerator() {
   const handleGenerateVideo = async () => {
     if (!generatedContent) return
     
-    alert('La generación de video requiere configuración de n8n para publicar en Instagram/TikTok. Por ahora puedes usar el copy generado.')
+    setGeneratingImage(true)
+    try {
+      const response = await fetch('/api/generar-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `${generatedContent.service}: ${generatedContent.topic}. Professional video clip, healthcare theme, children, warm colors`
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (data.videoUrl) {
+        setGeneratedImage(data.videoUrl)
+      } else if (data.error) {
+        alert('Error: ' + data.error)
+      }
+    } catch (error) {
+      console.error('Error generating video:', error)
+      alert('Error al generar video')
+    } finally {
+      setGeneratingImage(false)
+    }
   }
 
   const handleDownloadImage = () => {
