@@ -1,4 +1,6 @@
-import axios from 'axios'
+import { HfInference } from "@huggingface/inference"
+
+const hf = new HfInference(process.env.HUGGINGFACE_API_KEY)
 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json')
@@ -8,31 +10,20 @@ export default async function handler(req, res) {
   }
 
   const { prompt } = req.body || {}
-  const apiKey = process.env.HUGGINGFACE_API_KEY
 
   if (!prompt) {
     return res.status(400).json({ error: 'Prompt es requerido' })
   }
 
-  if (!apiKey) {
-    return res.status(500).json({ error: 'API key no configurada' })
-  }
-
   try {
-    // Usar modelo gratuito de HuggingFace
-    const response = await axios.post(
-      'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1',
-      { inputs: prompt },
-      {
-        headers: {
-          'Authorization': `Bearer ${apiKey}`
-        },
-        responseType: 'arraybuffer',
-        timeout: 180000
-      }
-    )
+    const imageBlob = await hf.textToImage({
+      model: "black-forest-labs/FLUX.1-schnell",
+      inputs: prompt,
+      parameters: { width: 1024, height: 1024 }
+    })
 
-    const base64 = Buffer.from(response.data).toString('base64')
+    const arrayBuffer = await imageBlob.arrayBuffer()
+    const base64 = Buffer.from(arrayBuffer).toString('base64')
     const imageUrl = `data:image/png;base64,${base64}`
 
     return res.status(200).json({ success: true, imageUrl })
