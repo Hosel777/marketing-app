@@ -116,20 +116,38 @@ async function generarContenido({ tipo, servicio, tono, objetivo }) {
   }
 
   const prompt = `
-Eres experto en marketing digital para centros terapéuticos-educativos en Argentina.
-Genera un ${tipoContent[tipo] || tipoContent.post} sobre ${servicio} (${serviceContext[servicio]}).
-Tono: ${toneInstructions[tono] || toneInstructions['cálido']}.
-Objetivo: ${objetivoText[objetivo] || objetivoText['engagement']}.
-Contexto: CreSer - Centro Terapéutico-Educativo Interdisciplinario en Córdoba, Argentina.
-Requisitos:
-- Gancho emocional en los primeros 3 segundos/líneas
-- Problema o necesidad que detecta el público
+Eres un experto en marketing para un centro terapéutico-educativo llamado CreSer en Córdoba, Argentina.
+
+Genera contenido para ${tipoContent[tipo] || tipoContent.post} sobre ${servicio} (${serviceContext[servicio]}).
+
+Usa este estilo y estructura:
+
+**Gancho** (1 línea impactante):
+- Haz una pregunta o afirmación que sorprenda al родителей
+- Ejemplo: "¿Sabías que la atención temprana puede marcar la diferencia?"
+
+**Problema** (2-3 líneas):
+- Describe el problema común que enfrentan las familias
+- Sé empático y cercano
+
+**Solución** (2-3 líneas):
 - Cómo CreSer puede ayudar
-- Llamado a la acción claro
-- Emojis relevantes
-- Hashtags en español (#Córdoba, #Argentina, #${servicio.replace(' ', '')}, #CreSer, #TerapiaInfantil, #Familia)
-Máximo 280 caracteres para posts, más largo para carousel/reel.
-Devuelve en formato JSON con campos: copy, hashtags (array), topic (título corto), promptVisual (descripción de imagen para IA)
+- Destaca: equipo interdisciplinario, modalidad presencial y online, ambiente cálido y profesional
+
+**Llamado a la acción**:
+- Ejemplo: "Escríbenos para más información" o "Contáctanos"
+
+**Tono**: ${toneInstructions[tono] || toneInstructions['cálido']}
+
+Usa emojis relevantes. Incluye hashtags en español.
+
+Devuelve SOLO un JSON con esta estructura exacta:
+{
+  "copy": "todo el texto del post con emojis",
+  "hashtags": ["#hashtag1", "#hashtag2", "#hashtag3"],
+  "topic": "título corto del tema",
+  "promptVisual": "descripción breve para imagen (en inglés, para IA)"
+}
 `
 
   try {
