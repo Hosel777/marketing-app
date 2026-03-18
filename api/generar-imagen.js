@@ -1,6 +1,6 @@
-import axios from 'axios'
+import { InferenceClient } from '@huggingface/inference'
 
-const HF_API_KEY = process.env.HUGGINGFACE_API_KEY
+const client = new InferenceClient(process.env.HUGGINGFACE_API_KEY)
 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json')
@@ -15,25 +15,18 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Prompt es requerido' })
   }
 
-  if (!HF_API_KEY) {
-    return res.status(500).json({ error: 'API key de HuggingFace no configurada' })
-  }
-
   try {
-    const response = await axios.post(
-      'https://api-inference.huggingface.co/models/ai-forever/playground-v2',
-      { inputs: prompt },
-      {
-        headers: {
-          'Authorization': `Bearer ${HF_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        responseType: 'arraybuffer',
-        timeout: 120000
+    const blob = await client.textToImage({
+      model: 'black-forest-labs/FLUX.1-dev',
+      inputs: prompt,
+      parameters: {
+        width: 1024,
+        height: 1024
       }
-    )
+    })
 
-    const base64 = Buffer.from(response.data).toString('base64')
+    const arrayBuffer = await blob.arrayBuffer()
+    const base64 = Buffer.from(arrayBuffer).toString('base64')
     const imageUrl = `data:image/png;base64,${base64}`
 
     return res.status(200).json({ success: true, imageUrl })
