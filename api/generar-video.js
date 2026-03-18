@@ -1,7 +1,3 @@
-import { HfInference } from "@huggingface/inference"
-
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY)
-
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json')
   
@@ -15,21 +11,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Prompt es requerido' })
   }
 
-  try {
-    // Usar ModelScope para video
-    const response = await hf.request({
-      model: "ali-vilas/text-to-video-ms-1.7b",
-      inputs: prompt,
-    })
-
-    const arrayBuffer = await response.arrayBuffer()
-    const base64 = Buffer.from(arrayBuffer).toString('base64')
-    const videoUrl = `data:video/mp4;base64,${base64}`
-
-    return res.status(200).json({ success: true, videoUrl })
-
-  } catch (error) {
-    console.error('Video error:', error.message)
-    return res.status(500).json({ error: 'Error: ' + error.message })
-  }
+  // Video gratuito no está disponible en HuggingFace
+  // Puedes usar la imagen generada para crear tu post en Instagram/TikTok
+  return res.status(200).json({ 
+    error: 'Video no disponible actualmente. Usa la imagen generada para tu post.',
+    imageTip: 'Genera una imagen y úsala como foto de portada o crea un video con otra herramienta.'
+  })
 }
