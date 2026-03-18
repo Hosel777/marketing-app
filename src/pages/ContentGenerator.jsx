@@ -220,7 +220,7 @@ export default function ContentGenerator() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: `${generatedContent.service}: ${generatedContent.topic}. Professional colorful illustration, modern pastel colors, warm healthcare theme for children`
+          prompt: `${generatedContent.service}: ${generatedContent.topic}. Realistic professional photo, modern office, children therapy center, warm colors, high quality, 4k`
         })
       })
       
