@@ -216,11 +216,25 @@ export default function ContentGenerator() {
     
     setGeneratingImage(true)
     try {
-      const prompt = `Professional colorful illustration for social media about ${generatedContent.service}: ${generatedContent.topic}. Style: modern pastel colors (yellow, mint green, pink), warm professional healthcare theme for children, high quality, detailed, no text`
+      // Llamar a la API de Ollama para generar imagen
+      const response = await fetch('/api/generar-contenido', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: 'imagen',
+          servicio: generatedContent.service,
+          tono: 'cálido',
+          objetivo: 'engagement'
+        })
+      })
       
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1080&height=1350&nologo=true&seed=${Math.floor(Math.random() * 100000)}`
+      const data = await response.json()
       
-      setGeneratedImage(imageUrl)
+      if (data.success && data.data && data.data.imageUrl) {
+        setGeneratedImage(data.data.imageUrl)
+      } else {
+        alert('La generación de imágenes requiere configuración de n8n. Por ahora puedes usar el copy y hashtags generados.')
+      }
     } catch (error) {
       console.error('Error generating image:', error)
       alert('Error al generar imagen')
@@ -232,19 +246,7 @@ export default function ContentGenerator() {
   const handleGenerateVideo = async () => {
     if (!generatedContent) return
     
-    setGeneratingImage(true)
-    try {
-      const prompt = `Short video clip about ${generatedContent.service}: ${generatedContent.topic}. Professional healthcare theme, children, warm colors, smooth motion, high quality`
-      
-      const videoUrl = `https://video.pollinations.ai/${encodeURIComponent(prompt)}?width=720&height=1280&duration=5`
-      
-      setGeneratedImage(videoUrl)
-    } catch (error) {
-      console.error('Error generating video:', error)
-      alert('Error al generar video')
-    } finally {
-      setGeneratingImage(false)
-    }
+    alert('La generación de video requiere configuración de n8n para publicar en Instagram/TikTok. Por ahora puedes usar el copy generado.')
   }
 
   const handleDownloadImage = () => {
