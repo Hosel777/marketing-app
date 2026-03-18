@@ -172,7 +172,7 @@ export default function ContentGenerator() {
           servicio: formData.service,
           tono: formData.tone,
           objetivo: 'engagement',
-          generarImagen: true
+          generarImagen: false
         })
       })
       

@@ -27,13 +27,23 @@ export default async function handler(req, res) {
     n8nWebhook = null
   } = req.body || {}
 
-  try {
-    const resultado = await generarContenido({
+try {
+    let resultado = await generarContenido({
       tipo,
       servicio,
       tono,
       objetivo
     })
+
+    // Fallback si no hay contenido
+    if (!resultado || !resultado.copy) {
+      resultado = {
+        copy: `¿Sabías que la atención temprana puede marcar la diferencia en el desarrollo de tu hijo? En CreSer, centro terapéutico-educativo interdisciplinario en Córdoba, Argentina, entendemos las necesidades de cada familia. Nuestro equipo de ${servicio} trabaja día a día para ayudar a niños y familias a alcanzar su máximo potencial. Contáctanos para más información.`,
+        hashtags: [`#${servicio.replace(' ', '')}`, '#CreSer', '#Córdoba', '#Argentina', '#TerapiaInfantil', '#DesarrolloInfantil', '#Familia'],
+        topic: `Información sobre ${servicio}`,
+        promptVisual: `${servicio} - centro terapéutico infantil`
+      }
+    }
 
     let imageUrl = null
 
