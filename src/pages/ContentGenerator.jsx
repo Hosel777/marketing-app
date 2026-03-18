@@ -216,19 +216,14 @@ export default function ContentGenerator() {
     
     setGeneratingImage(true)
     try {
-      if (window.puter && window.puter.ai) {
-        const imagePrompt = `Professional colorful illustration for social media about ${generatedContent.service}: ${generatedContent.topic}. Style: modern pastel colors (yellow, mint green, pink), warm professional healthcare theme for children, high quality, detailed, no text`
-        
-        const image = await window.puter.ai.txt2img(imagePrompt)
-        
-        if (image && image.src) {
-          setGeneratedImage(image.src)
-        } else if (typeof image === 'string') {
-          setGeneratedImage(image)
-        }
-      }
+      const prompt = `Professional colorful illustration for social media about ${generatedContent.service}: ${generatedContent.topic}. Style: modern pastel colors (yellow, mint green, pink), warm professional healthcare theme for children, high quality, detailed, no text`
+      
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1080&height=1350&nologo=true&seed=${Math.floor(Math.random() * 100000)}`
+      
+      setGeneratedImage(imageUrl)
     } catch (error) {
       console.error('Error generating image:', error)
+      alert('Error al generar imagen')
     } finally {
       setGeneratingImage(false)
     }
@@ -239,19 +234,14 @@ export default function ContentGenerator() {
     
     setGeneratingImage(true)
     try {
-      if (window.puter && window.puter.ai) {
-        const videoPrompt = `Short video clip about ${generatedContent.service}: ${generatedContent.topic}. Professional healthcare theme, children, warm colors, smooth motion, high quality`
-        
-        const video = await window.puter.ai.txt2vid(videoPrompt)
-        
-        if (video && video.src) {
-          setGeneratedImage(video.src)
-        } else if (typeof video === 'string') {
-          setGeneratedImage(video)
-        }
-      }
+      const prompt = `Short video clip about ${generatedContent.service}: ${generatedContent.topic}. Professional healthcare theme, children, warm colors, smooth motion, high quality`
+      
+      const videoUrl = `https://video.pollinations.ai/${encodeURIComponent(prompt)}?width=720&height=1280&duration=5`
+      
+      setGeneratedImage(videoUrl)
     } catch (error) {
       console.error('Error generating video:', error)
+      alert('Error al generar video')
     } finally {
       setGeneratingImage(false)
     }
