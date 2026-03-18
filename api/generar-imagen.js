@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   try {
     // Usar modelo gratuito de HuggingFace
     const response = await axios.post(
-      'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-3.5-large-turbo',
+      'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1',
       { inputs: prompt },
       {
         headers: {
