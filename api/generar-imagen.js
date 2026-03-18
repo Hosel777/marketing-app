@@ -21,7 +21,7 @@ export default async function handler(req, res) {
 
   try {
     const response = await axios.post(
-      'https://api-inference.huggingface.co/models/flux',
+      'https://api-inference.huggingface.co/models/ai-forever/playground-v2',
       { inputs: prompt },
       {
         headers: {
