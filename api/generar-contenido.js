@@ -124,7 +124,7 @@ Devuelve en formato JSON con campos: copy, hashtags (array), topic (título cort
 
   try {
     const response = await ollama.generate({
-      model: 'llama3.1',
+      model: 'llama3',
       prompt: prompt,
       format: 'json',
       options: {
