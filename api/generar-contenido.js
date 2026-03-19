@@ -152,7 +152,7 @@ Devuelve SOLO un JSON con esta estructura exacta:
       messages: [
         { role: 'user', content: prompt }
       ],
-      response_format: { type: 'json_object' }
+      max_tokens: 1500
     }, {
       headers: {
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
