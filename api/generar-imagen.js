@@ -47,19 +47,25 @@ export default async function handler(req, res) {
           }
         })
 
+        if (!imageBlob || imageBlob.size < 100) {
+          throw new Error('Imagen generada inválida o vacía')
+        }
+
         const arrayBuffer = await imageBlob.arrayBuffer()
         const base64Image = Buffer.from(arrayBuffer).toString('base64')
+        const mimeType = imageBlob.type || 'image/png'
         
+        console.log(`Imagen generada con éxito (${model}): ${mimeType}, ${imageBlob.size} bytes`)
+
         return res.status(200).json({ 
           success: true, 
-          imageUrl: `data:image/png;base64,${base64Image}`,
+          imageUrl: `data:${mimeType};base64,${base64Image}`,
           source: 'huggingface',
           model
         })
 
       } catch (hfError) {
         console.warn(`Modelo ${model} falló:`, hfError.message)
-        // Si es un error de cuota o modelo cargando, probamos el siguiente
         continue
       }
     }
@@ -68,9 +74,9 @@ export default async function handler(req, res) {
   // Fallback a Pollinations
   console.log('Usando fallback: Pollinations')
   const seed = Math.floor(Math.random() * 100000)
-  // Pollinations suele funcionar mejor con este formato de URL
   const cleanPrompt = prompt.substring(0, 400).replace(/[^\w\s,]/g, '')
-  const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt + ' professional illustrative style, soft colors')}?width=${width}&height=${height}&nologo=true&seed=${seed}`
+  // Cambiamos a pollinations.ai/p/ para ver si es más estable
+  const fallbackUrl = `https://pollinations.ai/p/${encodeURIComponent(cleanPrompt + (tipo === 'comic' ? ' comic style' : ' professional illustration'))}?width=${width}&height=${height}&nologo=true&seed=${seed}`
   
   return res.status(200).json({ 
     success: true, 
