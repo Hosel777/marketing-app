@@ -4,8 +4,8 @@ const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY
 const hf = new HfInference(HUGGINGFACE_API_KEY)
 
 const HF_MODELS = [
-  'stabilityai/stable-diffusion-xl-base-1.0',
   'black-forest-labs/FLUX.1-schnell',
+  'stabilityai/stable-diffusion-xl-base-1.0',
   'prompthero/openjourney'
 ]
 
@@ -18,6 +18,7 @@ const createEnhancedPrompt = (prompt, tipo = 'post') => {
 }
 
 export default async function handler(req, res) {
+  const startTime = Date.now()
   res.setHeader('Content-Type', 'application/json')
   
   if (req.method !== 'POST') {
@@ -32,15 +33,21 @@ export default async function handler(req, res) {
 
   const enhancedPrompt = createEnhancedPrompt(prompt, tipo)
 
-  if (!HUGGINGFACE_API_KEY) {
-    console.warn('HUGGINGFACE_API_KEY no configurada. Usando fallback directo.')
-  } else {
+  if (HUGGINGFACE_API_KEY) {
+    // Intentaremos modelos HF solo mientras nos queden al menos 2 segundos de los 10 de Vercel
     for (const model of HF_MODELS) {
+      const elapsed = Date.now() - startTime
+      if (elapsed > 8000) {
+        console.warn('Tiempo límite global de HF alcanzado (8s). Saltando a fallback.')
+        break
+      }
+
       try {
-        console.log(`Intentando modelo HF: ${model}`)
+        console.log(`Intentando modelo HF (${Math.round(elapsed)}ms transcurridos): ${model}`)
         
+        // Timeout individual de 5s por modelo para no agotar el tiempo total
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Hugging Face Timeout (Límite 7s)')), 7000)
+          setTimeout(() => reject(new Error('HF Model Timeout (5s)')), 5000)
         )
 
         const hfPromise = hf.textToImage({

@@ -212,19 +212,30 @@ export default function ContentGenerator() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const fetchWithPollinationsRetry = async (url, retries = 3) => {
+  const fetchWithPollinationsRetry = async (url, retries = 4) => {
     for (let i = 0; i < retries; i++) {
       try {
+        console.log(`Intento de imagen ${i + 1}/${retries}...`)
         const res = await fetch(url)
         const contentType = res.headers.get('content-type')
+        
         if (contentType && contentType.startsWith('image/')) {
           const blob = await res.blob()
           return URL.createObjectURL(blob)
         }
+        
+        // Si no es imagen, probablemente es el JSON de "Rate Limit"
+        const errorData = await res.json().catch(() => ({}))
+        console.warn('Pollinations no devolvió imagen:', errorData)
       } catch (err) {
-        console.warn('Fetch image error:', err)
+        console.warn('Error en fetch de imagen:', err)
       }
-      if (i < retries - 1) await new Promise(r => setTimeout(r, 2500))
+      
+      if (i < retries - 1) {
+        const waitTime = Math.pow(2, i) * 2000 // 2s, 4s, 8s...
+        console.log(`Esperando ${waitTime}ms para reintentar...`)
+        await new Promise(r => setTimeout(r, waitTime))
+      }
     }
     throw new Error('Max retries reached')
   }
