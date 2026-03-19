@@ -1,7 +1,3 @@
-import { HfInference } from "@huggingface/inference"
-
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY)
-
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json')
   
@@ -16,16 +12,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const imageBlob = await hf.textToImage({
-      model: "black-forest-labs/FLUX.1-schnell",
-      inputs: prompt,
-      parameters: { width: 1024, height: 1024 }
-    })
+    // Usamos Pollinations por su estabilidad y velocidad (gratuito)
+    const refinedPrompt = `${prompt}, professional colorful illustration, modern office children therapy center, warm pastel colors, high quality, detailed, no text, 4k`
+    
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(refinedPrompt)}?width=1024&height=1024&nologo=true&seed=${Math.floor(Math.random() * 100000)}`
 
-    const arrayBuffer = await imageBlob.arrayBuffer()
-    const base64 = Buffer.from(arrayBuffer).toString('base64')
-    const imageUrl = `data:image/png;base64,${base64}`
-
+    // ParaPollinations, el archivo es la propia URL, no hace falta procesar blob
     return res.status(200).json({ success: true, imageUrl })
 
   } catch (error) {
