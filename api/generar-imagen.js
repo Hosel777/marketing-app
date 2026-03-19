@@ -39,13 +39,19 @@ export default async function handler(req, res) {
       try {
         console.log(`Intentando modelo HF: ${model}`)
         
-        const imageBlob = await hf.textToImage({
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Hugging Face Timeout (Límite 7s)')), 7000)
+        )
+
+        const hfPromise = hf.textToImage({
           model: model,
           inputs: enhancedPrompt,
           parameters: {
             guidance_scale: 7.5,
           }
         })
+
+        const imageBlob = await Promise.race([hfPromise, timeoutPromise])
 
         if (!imageBlob || imageBlob.size < 100) {
           throw new Error('Imagen generada inválida o vacía')
