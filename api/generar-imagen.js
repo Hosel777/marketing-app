@@ -1,6 +1,4 @@
-import { HfInference } from "@huggingface/inference"
-
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY)
+import axios from 'axios'
 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json')
@@ -16,24 +14,36 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Usamos SD v1.5 por su extrema estabilidad y baja latencia (evita timeouts en Vercel)
-    const imageBlob = await hf.textToImage({
-      model: "runwayml/stable-diffusion-v1-5",
-      inputs: `${prompt}, professional illustration, colors, high quality`,
-      parameters: { width: 512, height: 512 }
+    // Usamos Puter AI (vía su API REST) por ser extremadamente estable y gratuito
+    // El modelo 'flux' de Puter es superior en realismo
+    const response = await axios.post('https://api.puter.ai/v1/ai/txt2img', {
+      prompt: `${prompt}, professional photography, soft lighting, warm therapeutic atmosphere, high resolution`,
+      model: 'flux',
+      width: 1024,
+      height: 1024
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      responseType: 'arraybuffer' // Recibimos la imagen directamente
     })
 
-    const arrayBuffer = await imageBlob.arrayBuffer()
-    const base64 = Buffer.from(arrayBuffer).toString('base64')
-    const imageUrl = `data:image/png;base64,${base64}`
+    const base64Image = Buffer.from(response.data, 'binary').toString('base64')
+    const imageUrl = `data:image/png;base64,${base64Image}`
 
     return res.status(200).json({ success: true, imageUrl })
 
   } catch (error) {
-    console.error('Hugging Face error:', error.message)
-    return res.status(500).json({ 
-      error: 'Error en Hugging Face: ' + error.message,
-      tip: 'Verifica que HUGGINGFACE_API_KEY esté en Vercel y sea válida.'
+    console.error('Puter AI error:', error.message)
+    
+    // Fallback a Pollinations si Puter falla (para que nunca te quedes sin imagen)
+    const seed = Math.floor(Math.random() * 100000)
+    const fallbackUrl = `https://pollinations.ai/p/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${seed}`
+    
+    return res.status(200).json({ 
+      success: true, 
+      imageUrl: fallbackUrl,
+      source: 'fallback' 
     })
   }
 }
