@@ -28,7 +28,8 @@ export default async function handler(req, res) {
       tipo,
       servicio,
       tono,
-      objetivo
+      objetivo,
+      topic: req.body.topic // Pasamos el tema solicitado
     })
 
     // Fallback si no hay contenido
@@ -81,7 +82,7 @@ export default async function handler(req, res) {
   }
 }
 
-async function generarContenido({ tipo, servicio, tono, objetivo }) {
+async function generarContenido({ tipo, servicio, tono, objetivo, topic }) {
   const toneInstructions = {
     profesional: 'Formal pero accesible, lenguaje técnico claro',
     cálido: 'Empático, cercano, como un amigo que recomienda',
@@ -148,8 +149,12 @@ Devuelve SOLO un JSON con esta estructura exacta:
 
   try {
     const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: OPENROUTER_MODEL,
+      model: OPENROUTER_API_KEY ? OPENROUTER_MODEL : 'meta-llama/llama-3.1-8b-instruct:free',
       messages: [
+        { 
+          role: 'system', 
+          content: 'Eres un experto en marketing para CreSer, un centro terapéutico en Córdoba, Argentina. Generas copys empáticos y profesionales.' 
+        },
         { role: 'user', content: prompt }
       ],
       max_tokens: 1500
@@ -162,7 +167,14 @@ Devuelve SOLO un JSON con esta estructura exacta:
     })
 
     const content = response.data.choices[0].message.content
-    return JSON.parse(content)
+    const parsed = JSON.parse(content.replace(/```json/g, '').replace(/```/g, ''))
+    
+    // Forzamos que el servicio y tema coincidan con lo solicitado para evitar "alucinaciones"
+    return {
+      ...parsed,
+      topic: parsed.topic || topic || `Información sobre ${servicio}`,
+      servicio: servicio // Aseguramos que devuelva el ID exacto del servicio
+    }
 
   } catch (error) {
     console.error('OpenRouter error:', error.response?.data || error.message)
@@ -185,19 +197,7 @@ function parseResponseToJSON(text, servicio) {
   }
 }
 
-async function generarImagenIA(promptVisual) {
-  try {
-    const prompt = `${promptVisual}, professional colorful illustration, modern pastel colors (yellow, mint green, soft pink), warm healthcare theme for children, high quality, detailed, no text, 4k`
-    
-    const imageUrl = `${POLLINATIONS_URL}/prompt/${encodeURIComponent(prompt)}?width=1080&height=1350&nologo=true&seed=${Math.floor(Math.random() * 100000)}`
-    
-    return imageUrl
-
-  } catch (error) {
-    console.error('Pollinations error:', error.message)
-    return null
-  }
-}
+// La generación de imágenes ahora se maneja exclusivamente en /api/generar-imagen para mayor limpieza
 
 async function enviarAN8N(data) {
   if (!N8N_WEBHOOK_URL) {

@@ -171,6 +171,7 @@ export default function ContentGenerator() {
           tipo: formData.contentType,
           servicio: formData.service,
           tono: formData.tone,
+          topic: formData.topic,
           objetivo: 'engagement',
           generarImagen: false
         })
