@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp:free'
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct:free'
 
 const POLLINATIONS_URL = 'https://image.pollinations.ai'
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL
