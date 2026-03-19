@@ -1,3 +1,7 @@
+import { HfInference } from "@huggingface/inference"
+
+const hf = new HfInference(process.env.HUGGINGFACE_API_KEY)
+
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json')
   
@@ -12,17 +16,24 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Prompt súper simplificado para evitar URLs largas y errores
-    const shortPrompt = prompt.split(',')[0].substring(0, 100)
-    const refinedPrompt = `${shortPrompt}, professional therapeutic illustration, soft pastel colors, warm theme, high quality`
-    
-    const seed = Math.floor(Math.random() * 100000)
-    const imageUrl = `https://pollinations.ai/p/${encodeURIComponent(refinedPrompt)}?width=1024&height=1024&nologo=true&seed=${seed}`
+    // Usamos SDXL Turbo por su extrema rapidez y estabilidad en HF
+    const imageBlob = await hf.textToImage({
+      model: "stabilityai/sdxl-turbo",
+      inputs: `${prompt}, professional illustration, soft colors, high quality, 4k`,
+      parameters: { width: 512, height: 512 } // 512 es óptimo para el modelo Turbo
+    })
+
+    const arrayBuffer = await imageBlob.arrayBuffer()
+    const base64 = Buffer.from(arrayBuffer).toString('base64')
+    const imageUrl = `data:image/png;base64,${base64}`
 
     return res.status(200).json({ success: true, imageUrl })
 
   } catch (error) {
-    console.error('Image generation error:', error.message)
-    return res.status(500).json({ error: 'Error al generar la imagen.' })
+    console.error('Hugging Face error:', error.message)
+    return res.status(500).json({ 
+      error: 'Error en Hugging Face: ' + error.message,
+      tip: 'Verifica que HUGGINGFACE_API_KEY esté en Vercel y sea válida.'
+    })
   }
 }
