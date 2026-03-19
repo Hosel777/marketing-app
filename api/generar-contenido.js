@@ -1,9 +1,5 @@
-import axios from 'axios'
-
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'openrouter/free'
-
-const POLLINATIONS_URL = 'https://image.pollinations.ai'
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL
 
 export default async function handler(req, res) {
@@ -29,7 +25,7 @@ export default async function handler(req, res) {
       servicio,
       tono,
       objetivo,
-      topic: req.body.topic // Pasamos el tema solicitado
+      topic: req.body.topic
     })
 
     // Fallback si no hay contenido
@@ -77,7 +73,7 @@ export default async function handler(req, res) {
     return res.status(500).json({
       success: false,
       error: error.message,
-      message: 'Error conectando con OpenRouter. Verifica las variables de entorno.'
+      message: 'Error conectando con OpenRouter o tiempo de espera agotado. Por favor, intenta de nuevo.'
     })
   }
 }
@@ -90,15 +86,6 @@ async function generarContenido({ tipo, servicio, tono, objetivo, topic }) {
     motivacional: 'Inspirador, positivo, orientado a acción'
   }
 
-  const serviceContext = {
-    'Fonoaudiología': 'desarrollo del lenguaje, habla y comunicación en niños',
-    'Psicología': 'salud mental y bienestar emocional infantil y familiar',
-    'Psicomotricidad': 'desarrollo motor fino y grueso en niños',
-    'Evaluación Neuropsicológica': 'evaluaciones cognitivas y de aprendizaje',
-    'Inclusión Educativa': 'apoyo a estudiantes con NEE y adaptaciones curriculares',
-    'Apoyo Escolar': 'refuerzo académico y técnicas de estudio'
-  }
-
   const tipoContent = {
     post: 'publicación para Instagram Feed',
     carousel: 'carousel educativo de 5 slides para Instagram',
@@ -107,99 +94,69 @@ async function generarContenido({ tipo, servicio, tono, objetivo, topic }) {
     comic: 'un cómic o historia social de 4 viñetas (social story)'
   }
 
-  const objetivoText = {
-    venta: 'Incluye llamado a la acción fuerte para comprar/contactar',
-    engagement: 'Enfocado en generar interacción y comentarios',
-    conciencia: 'Contenido educativo e informativo'
-  }
+  const prompt = `Genera un post para CreSer (centro terapéutico en Córdoba, Argentina) sobre ${servicio}.
+Tipo: ${tipoContent[tipo] || 'post'}
+Tono: ${toneInstructions[tono] || 'cálido'}
+Objetivo: ${objetivo || 'engagement'}
+Tema específico: ${topic || 'atención integral'}
 
-  const prompt = `
-Eres un experto en marketing para un centro terapéutico-educativo llamado CreSer en Córdoba, Argentina.
+Estructura: Gancho impactante, Problema empático, Solución CreSer, Llamado a la acción.
+Usa emojis. Devuelve SOLO JSON: {"copy": "...", "hashtags": ["#..."], "topic": "...", "promptVisual": "..."}`
 
-Genera contenido para ${tipoContent[tipo] || tipoContent.post} sobre ${servicio} (${serviceContext[servicio]}).
+  const primaryModel = OPENROUTER_API_KEY ? OPENROUTER_MODEL : 'meta-llama/llama-3.1-8b-instruct:free'
+  const modelsToTry = [primaryModel, 'meta-llama/llama-3.1-8b-instruct:free', 'google/gemini-flash-1.5-exp:free']
 
-Usa este estilo y estructura:
+  for (const model of modelsToTry) {
+    try {
+      console.log(`Intentando generación de texto con: ${model}`)
+      
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 20000)
 
-**Gancho** (1 línea impactante):
-- Haz una pregunta o afirmación que sorprenda al padre/madre
-- Ejemplo: "¿Sabías que la atención temprana puede marcar la diferencia?"
-
-**Problema** (2-3 líneas):
-- Describe el problema común que enfrentan las familias
-- Sé empático y cercano
-
-**Solución** (2-3 líneas):
-- Cómo CreSer puede ayudar
-- Destaca: equipo interdisciplinario, modalidad presencial y online, ambiente cálido y profesional
-
-**Llamado a la acción**:
-- Ejemplo: "Escríbenos para más información" o "Contáctanos"
-
-**Tono**: ${toneInstructions[tono] || toneInstructions['cálido']}
-
-Usa emojis relevantes. Incluye hashtags en español.
-
-Devuelve SOLO un JSON con esta estructura exacta:
-{
-  "copy": "todo el texto del post con emojis",
-  "hashtags": ["#hashtag1", "#hashtag2", "#hashtag3"],
-  "topic": "título corto del tema",
-  "promptVisual": "descripción breve para imagen (en inglés, para IA)"
-}
-`
-
-  try {
-    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: OPENROUTER_API_KEY ? OPENROUTER_MODEL : 'meta-llama/llama-3.1-8b-instruct:free',
-      messages: [
-        { 
-          role: 'system', 
-          content: 'Eres un experto en marketing para CreSer, un centro terapéutico en Córdoba, Argentina. Generas copys empáticos y profesionales.' 
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://creser.com.ar',
+          'X-Title': 'CreSer Marketing App'
         },
-        { role: 'user', content: prompt }
-      ],
-      max_tokens: 1500
-    }, {
-      headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'HTTP-Referer': 'https://creser.com.ar',
-        'X-Title': 'CreSer Marketing App'
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            { role: 'system', content: 'Eres un experto en marketing terapéutico para CreSer Córdoba. Devuelve siempre JSON puro.' },
+            { role: 'user', content: prompt }
+          ],
+          response_format: { type: 'json_object' }
+        }),
+        signal: controller.signal
+      })
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        const errText = await response.text()
+        throw new Error(`OpenRouter HTTP ${response.status}: ${errText.substring(0, 100)}`)
       }
-    })
 
-    const content = response.data.choices[0].message.content
-    const parsed = JSON.parse(content.replace(/```json/g, '').replace(/```/g, ''))
-    
-    // Forzamos que el servicio y tema coincidan con lo solicitado para evitar "alucinaciones"
-    return {
-      ...parsed,
-      topic: parsed.topic || topic || `Información sobre ${servicio}`,
-      servicio: servicio // Aseguramos que devuelva el ID exacto del servicio
+      const data = await response.json()
+      const content = data.choices[0].message.content
+      const parsed = JSON.parse(content.replace(/```json/g, '').replace(/```/g, ''))
+      
+      return {
+        ...parsed,
+        topic: parsed.topic || topic || `Contenido de ${servicio}`,
+        servicio: servicio
+      }
+
+    } catch (error) {
+      console.warn(`Fallo con modelo ${model}:`, error.message)
+      if (model === modelsToTry[modelsToTry.length - 1]) throw error
+      continue
     }
-
-  } catch (error) {
-    console.error('OpenRouter error:', error.response?.data || error.message)
-    throw new Error('Error conectando con OpenRouter: ' + (error.response?.data?.error?.message || error.message))
   }
 }
 
-function parseResponseToJSON(text, servicio) {
-  const hashtags = text.match(/#[a-zA-Z0-9áéíóúñÁÉÍÓÚÑ]+/g) || [
-    `#${servicio.replace(' ', '')}`, '#CreSer', '#Córdoba', '#Argentina'
-  ]
-
-  const lines = text.split('\n').filter(l => l.trim())
-  
-  return {
-    copy: text.substring(0, 1000),
-    hashtags: [...new Set(hashtags)].slice(0, 10),
-    topic: lines[0]?.substring(0, 60) || `Contenido sobre ${servicio}`,
-    promptVisual: `${servicio} - ${lines[0] || 'professional healthcare illustration for social media'}`
-  }
-}
-
-// La generación de imágenes principal se maneja en /api/generar-imagen
-// Esta función es un fallback rápido para el flujo directo de contenido
 async function generarImagenIA(prompt) {
   try {
     const seed = Math.floor(Math.random() * 100000)
@@ -222,10 +179,15 @@ async function enviarAN8N(data) {
     timestamp: new Date().toISOString()
   }
 
-  const axios = (await import('axios')).default
-  await axios.post(N8N_WEBHOOK_URL, payload, {
-    timeout: 30000
-  })
-
-  return { status: 'enviado' }
+  try {
+    await fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    return { status: 'enviado' }
+  } catch (err) {
+    console.error('Error enviando a n8n:', err.message)
+    return { status: 'error', message: err.message }
+  }
 }
