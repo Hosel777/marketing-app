@@ -212,6 +212,23 @@ export default function ContentGenerator() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const fetchWithPollinationsRetry = async (url, retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const res = await fetch(url)
+        const contentType = res.headers.get('content-type')
+        if (contentType && contentType.startsWith('image/')) {
+          const blob = await res.blob()
+          return URL.createObjectURL(blob)
+        }
+      } catch (err) {
+        console.warn('Fetch image error:', err)
+      }
+      if (i < retries - 1) await new Promise(r => setTimeout(r, 2500))
+    }
+    throw new Error('Max retries reached')
+  }
+
   const handleGenerateImage = async () => {
     if (!generatedContent) return
 
@@ -221,15 +238,24 @@ export default function ContentGenerator() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // Priorizamos lo seleccionado en los botones para que siempre sea coherente
-          prompt: `${formData.service}: ${formData.topic || generatedContent.topic}. Professional realistic photo, modern office, children therapy center, warm colors, high quality, 4k`
+          prompt: `${formData.service}: ${formData.topic || generatedContent.topic}. Professional realistic photo, modern office, children therapy center, warm colors, high quality, 4k`,
+          tipo: formData.contentType
         })
       })
 
       const data = await response.json()
 
       if (data.success && data.imageUrl) {
-        setGeneratedImage(data.imageUrl)
+        if (data.imageUrl.includes('pollinations.ai')) {
+          try {
+            const objectUrl = await fetchWithPollinationsRetry(data.imageUrl)
+            setGeneratedImage(objectUrl)
+          } catch (e) {
+            alert('El servidor de imágenes (opción rápida) está demasiado lleno ahora mismo. Por favor, reintenta en unos instantes.')
+          }
+        } else {
+          setGeneratedImage(data.imageUrl)
+        }
       } else {
         alert('Error: No se pudo generar la imagen. Reintenta en unos segundos.')
       }
