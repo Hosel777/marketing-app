@@ -221,16 +221,17 @@ export default function ContentGenerator() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: `${generatedContent.service}: ${generatedContent.topic}. Realistic professional photo, modern office, children therapy center, warm colors, high quality, 4k`
+          // Priorizamos lo seleccionado en los botones para que siempre sea coherente
+          prompt: `${formData.service}: ${formData.topic || generatedContent.topic}. Professional realistic photo, modern office, children therapy center, warm colors, high quality, 4k`
         })
       })
       
       const data = await response.json()
       
-      if (data.imageUrl) {
+      if (data.success && data.imageUrl) {
         setGeneratedImage(data.imageUrl)
-      } else if (data.error) {
-        alert('Error: ' + data.error)
+      } else {
+        alert('Error: No se pudo generar la imagen. Reintenta en unos segundos.')
       }
     } catch (error) {
       console.error('Error generating image:', error)

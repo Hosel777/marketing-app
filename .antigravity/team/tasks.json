@@ -2,25 +2,26 @@
   "tareas": [
     {
       "id": 1,
-      "título": "Configurar OpenRouter API Key en .env.local",
-      "estado": "COMPLETADA",
-      "plan_approved": true,
-      "asignado_a": "Backend"
+      "t\u00edtulo": "Auditor\u00eda de Timeouts en Vercel",
+      "estado": "EN_PROGRESO",
+      "asignado_a": "Arquitecto"
     },
     {
       "id": 2,
-      "título": "Actualizar api/generar-contenido.js para usar OpenRouter",
-      "estado": "COMPLETADA",
-      "plan_approved": true,
-      "asignado_a": "Backend"
+      "t\u00edtulo": "Sincronizaci\u00f3n de Botones y Prompt de Imagen",
+      "estado": "PENDIENTE",
+      "asignado_a": "Frontend"
     },
     {
       "id": 3,
-      "título": "Eliminar dependencia de Ollama si ya no se usa",
-      "estado": "COMPLETADA",
-      "plan_approved": true,
-      "asignado_a": "Backend"
+      "t\u00edtulo": "Implementaci\u00f3n de Motor de Imagen Robusto (Client-poll)",
+      "estado": "PENDIENTE",
+      "asignado_a": "Especialista"
     }
   ],
-  "miembros": ["Alejabot", "Arquitecto", "Backend"]
+  "miembros": [
+    "Alejabot",
+    "Arquitecto",
+    "Backend"
+  ]
 }
