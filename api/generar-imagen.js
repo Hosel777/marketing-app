@@ -4,9 +4,9 @@ const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY
 const hf = new HfInference(HUGGINGFACE_API_KEY)
 
 const HF_MODELS = [
-  'stabilityai/sdxl-turbo',
+  'black-forest-labs/FLUX.1-schnell',
   'Lykon/DreamShaper',
-  'SG161222/Realistic_Vision_V5.1_noVAE'
+  'prompthero/openjourney'
 ]
 
 const createEnhancedPrompt = (prompt, tipo = 'post') => {
@@ -30,11 +30,11 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Prompt es requerido' })
   }
 
+  const enhancedPrompt = createEnhancedPrompt(prompt, tipo)
+
   if (!HUGGINGFACE_API_KEY) {
     console.warn('HUGGINGFACE_API_KEY no configurada. Usando fallback directo.')
   } else {
-    const enhancedPrompt = createEnhancedPrompt(prompt, tipo)
-
     for (const model of HF_MODELS) {
       try {
         console.log(`Intentando modelo HF: ${model}`)
@@ -77,25 +77,45 @@ export default async function handler(req, res) {
     }
   }
 
-  // Fallback a Pollinations
-  try {
-    console.log('Usando fallback: Pollinations')
-    const seed = Math.floor(Math.random() * 100000)
-    const cleanPrompt = prompt.substring(0, 400).replace(/[^\w\s,]/g, '')
-    const finalPrompt = encodeURIComponent(cleanPrompt + (tipo === 'comic' ? ' comic book illustration' : ' professional therapeutic illustration'))
-    
-    const fallbackUrl = `https://image.pollinations.ai/prompt/${finalPrompt}?width=${width}&height=${height}&nologo=true&seed=${seed}`
-    
-    return res.status(200).json({ 
-      success: true, 
-      imageUrl: fallbackUrl,
-      source: 'pollinations_fallback' 
-    })
-  } catch (fallbackError) {
-    console.error('Error fatal en fallback:', fallbackError.message)
-    return res.status(500).json({ 
-      success: false, 
-      error: 'No se pudo generar la imagen con ningún proveedor' 
-    })
+  // Fallback a Pollinations con Reintentos en el Servidor
+  console.log('Usando fallback: Pollinations (Server Side)')
+  const cleanPrompt = prompt.substring(0, 400).replace(/[^\w\s,]/g, '')
+  const finalPrompt = encodeURIComponent(cleanPrompt + (tipo === 'comic' ? ' comic book illustration' : ' professional therapeutic illustration'))
+  
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const seed = Math.floor(Math.random() * 100000)
+      const fallbackUrl = `https://image.pollinations.ai/prompt/${finalPrompt}?width=${width}&height=${height}&nologo=true&seed=${seed}`
+      
+      const pollRes = await fetch(fallbackUrl, {
+        headers: { 'User-Agent': 'CreSer-Marketing-App' }
+      })
+
+      const contentType = pollRes.headers.get('content-type')
+      
+      if (pollRes.ok && contentType && contentType.startsWith('image/')) {
+        const arrayBuffer = await pollRes.arrayBuffer()
+        const base64Image = Buffer.from(arrayBuffer).toString('base64')
+        return res.status(200).json({ 
+          success: true, 
+          imageUrl: `data:${contentType};base64,${base64Image}`,
+          source: 'pollinations_server_fallback' 
+        })
+      } else {
+        const errText = await pollRes.text()
+        console.warn(`Intento ${attempt} de Pollinations falló. Respuesta no es imagen:`, errText.substring(0, 100))
+        if (attempt === 1) await new Promise(resolve => setTimeout(resolve, 2000)) // Esperar 2s antes de reintentar
+      }
+
+    } catch (fallbackError) {
+      console.warn(`Intento ${attempt} de Pollinations falló (${fallbackError.message})`)
+      if (attempt === 1) await new Promise(resolve => setTimeout(resolve, 2000))
+    }
   }
+
+  console.error('Error fatal: Ningún proveedor pudo generar la imagen')
+  return res.status(500).json({ 
+    success: false, 
+    error: 'Cola de IA llena. Por favor, intenta de nuevo en unos segundos.' 
+  })
 }
