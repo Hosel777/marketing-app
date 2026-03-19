@@ -16,11 +16,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Usamos SDXL Turbo por su extrema rapidez y estabilidad en HF
+    // Usamos SD v1.5 por su extrema estabilidad y baja latencia (evita timeouts en Vercel)
     const imageBlob = await hf.textToImage({
-      model: "stabilityai/sdxl-turbo",
-      inputs: `${prompt}, professional illustration, soft colors, high quality, 4k`,
-      parameters: { width: 512, height: 512 } // 512 es óptimo para el modelo Turbo
+      model: "runwayml/stable-diffusion-v1-5",
+      inputs: `${prompt}, professional illustration, colors, high quality`,
+      parameters: { width: 512, height: 512 }
     })
 
     const arrayBuffer = await imageBlob.arrayBuffer()
