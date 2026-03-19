@@ -103,7 +103,8 @@ async function generarContenido({ tipo, servicio, tono, objetivo, topic }) {
     post: 'publicación para Instagram Feed',
     carousel: 'carousel educativo de 5 slides para Instagram',
     reel: 'script para Reel de 30-60 segundos',
-    story: 'contenido para Instagram Story'
+    story: 'contenido para Instagram Story',
+    comic: 'un cómic o historia social de 4 viñetas (social story)'
   }
 
   const objetivoText = {
@@ -197,7 +198,18 @@ function parseResponseToJSON(text, servicio) {
   }
 }
 
-// La generación de imágenes ahora se maneja exclusivamente en /api/generar-imagen para mayor limpieza
+// La generación de imágenes principal se maneja en /api/generar-imagen
+// Esta función es un fallback rápido para el flujo directo de contenido
+async function generarImagenIA(prompt) {
+  try {
+    const seed = Math.floor(Math.random() * 100000)
+    const cleanPrompt = prompt.substring(0, 400).replace(/[^\w\s,]/g, '')
+    return `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt + ' professional therapeutic illustration, soft colors')}?width=1024&height=1024&nologo=true&seed=${seed}`
+  } catch (e) {
+    console.error('Error en imagen fallback:', e.message)
+    return null
+  }
+}
 
 async function enviarAN8N(data) {
   if (!N8N_WEBHOOK_URL) {

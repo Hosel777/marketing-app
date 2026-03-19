@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { 
-  Wand2, 
-  Instagram, 
-  Facebook, 
-  Linkedin, 
-  Youtube, 
-  Copy, 
+import {
+  Wand2,
+  Instagram,
+  Facebook,
+  Linkedin,
+  Youtube,
+  Copy,
   Check,
   Download,
   Sparkles,
@@ -162,7 +162,7 @@ export default function ContentGenerator() {
   const handleGenerate = async () => {
     setGenerating(true)
     setGenerated(false)
-    
+
     try {
       const response = await fetch('/api/generar-contenido', {
         method: 'POST',
@@ -176,9 +176,9 @@ export default function ContentGenerator() {
           generarImagen: false
         })
       })
-      
+
       const data = await response.json()
-      
+
       if (data.success && data.data) {
         setGeneratedContent({
           copy: data.data.copy,
@@ -191,7 +191,7 @@ export default function ContentGenerator() {
           createdAt: new Date().toISOString()
         })
         setGenerated(true)
-        
+
         if (data.data.imageUrl) {
           setGeneratedImage(data.data.imageUrl)
         }
@@ -214,7 +214,7 @@ export default function ContentGenerator() {
 
   const handleGenerateImage = async () => {
     if (!generatedContent) return
-    
+
     setGeneratingImage(true)
     try {
       const response = await fetch('/api/generar-imagen', {
@@ -225,9 +225,9 @@ export default function ContentGenerator() {
           prompt: `${formData.service}: ${formData.topic || generatedContent.topic}. Professional realistic photo, modern office, children therapy center, warm colors, high quality, 4k`
         })
       })
-      
+
       const data = await response.json()
-      
+
       if (data.success && data.imageUrl) {
         setGeneratedImage(data.imageUrl)
       } else {
@@ -243,7 +243,7 @@ export default function ContentGenerator() {
 
   const handleGenerateVideo = async () => {
     if (!generatedContent) return
-    
+
     setGeneratingImage(true)
     try {
       const response = await fetch('/api/generar-video', {
@@ -253,9 +253,9 @@ export default function ContentGenerator() {
           prompt: `${generatedContent.service}: ${generatedContent.topic}. Professional video clip, healthcare theme, children, warm colors`
         })
       })
-      
+
       const data = await response.json()
-      
+
       if (data.videoUrl) {
         setGeneratedImage(data.videoUrl)
       } else if (data.error) {
@@ -310,11 +310,10 @@ export default function ContentGenerator() {
                     <button
                       key={type.id}
                       onClick={() => setFormData({ ...formData, contentType: type.id })}
-                      className={`p-3 rounded-xl border-2 transition-all text-sm ${
-                        formData.contentType === type.id
+                      className={`p-3 rounded-xl border-2 transition-all text-sm ${formData.contentType === type.id
                           ? 'border-creser-mint bg-creser-mint/20 font-semibold'
                           : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                        }`}
                     >
                       <type.icon className="w-5 h-5 mx-auto mb-1" />
                       {type.label}
@@ -330,11 +329,10 @@ export default function ContentGenerator() {
                     <button
                       key={platform.id}
                       onClick={() => setFormData({ ...formData, platform: platform.id })}
-                      className={`flex-1 p-3 rounded-xl border-2 transition-all ${
-                        formData.platform === platform.id
+                      className={`flex-1 p-3 rounded-xl border-2 transition-all ${formData.platform === platform.id
                           ? 'border-creser-mint bg-creser-mint/20'
                           : 'border-gray-200 hover:border-gray-300'
-                      }`}
+                        }`}
                     >
                       <platform.icon className="w-5 h-5 mx-auto" />
                     </button>
@@ -465,9 +463,9 @@ export default function ContentGenerator() {
                       Descargar
                     </button>
                   </div>
-                  <img 
-                    src={generatedImage} 
-                    alt="Imagen generada" 
+                  <img
+                    src={generatedImage}
+                    alt="Imagen generada"
                     className="w-full rounded-xl"
                   />
                 </div>
@@ -491,7 +489,7 @@ export default function ContentGenerator() {
                     </>
                   )}
                 </button>
-                
+
                 <button
                   onClick={handleGenerateVideo}
                   disabled={generatingImage || !generatedContent}
