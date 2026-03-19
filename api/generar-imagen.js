@@ -4,6 +4,7 @@ const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY || process.env.HF_TO
 const hf = new HfInference(HUGGINGFACE_API_KEY)
 
 const HF_MODELS = [
+  'stabilityai/sd-turbo',
   'stabilityai/stable-diffusion-xl-base-1.0',
   'black-forest-labs/FLUX.1-schnell',
   'prompthero/openjourney'

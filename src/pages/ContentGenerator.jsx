@@ -212,67 +212,66 @@ export default function ContentGenerator() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const fetchWithPollinationsRetry = async (url, retries = 4) => {
+  const fetchWithPollinationsRetry = async (url, retries = 2) => {
     for (let i = 0; i < retries; i++) {
       try {
         console.log(`Intento de imagen ${i + 1}/${retries}...`)
-        const res = await fetch(url)
-        const contentType = res.headers.get('content-type')
+        // Cache-buster para evitar errores cacheados
+        const finalUrl = `${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`
+        const res = await fetch(finalUrl)
         
-        if (contentType && contentType.startsWith('image/')) {
+        if (res.ok && res.headers.get('content-type')?.startsWith('image/')) {
           const blob = await res.blob()
           return URL.createObjectURL(blob)
         }
-        
-        // Si no es imagen, probablemente es el JSON de "Rate Limit"
-        const errorData = await res.json().catch(() => ({}))
-        console.warn('Pollinations no devolvió imagen:', errorData)
       } catch (err) {
         console.warn('Error en fetch de imagen:', err)
       }
       
       if (i < retries - 1) {
-        const waitTime = Math.pow(2, i) * 2000 // 2s, 4s, 8s...
-        console.log(`Esperando ${waitTime}ms para reintentar...`)
-        await new Promise(r => setTimeout(r, waitTime))
+        await new Promise(r => setTimeout(r, 1500))
       }
     }
-    throw new Error('Max retries reached')
+    throw new Error('Servidor ocupado')
   }
 
   const handleGenerateImage = async () => {
     if (!generatedContent) return
-
     setGeneratingImage(true)
+    setGeneratedImage(null)
+
+    const prompt = `${formData.service}: ${generatedContent.topic || 'terapia infantil'}. Professional realistic photo, high quality, 4k`
+
     try {
       const response = await fetch('/api/generar-imagen', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `${formData.service}: ${formData.topic || generatedContent.topic}. Professional realistic photo, modern office, children therapy center, warm colors, high quality, 4k`,
-          tipo: formData.contentType
+        body: JSON.stringify({ 
+          prompt: prompt,
+          tipo: formData.contentType || 'post'
         })
       })
 
-      const data = await response.json()
+      const result = await response.json()
 
-      if (data.success && data.imageUrl) {
-        if (data.imageUrl.includes('pollinations.ai')) {
-          try {
-            const objectUrl = await fetchWithPollinationsRetry(data.imageUrl)
-            setGeneratedImage(objectUrl)
-          } catch (e) {
-            alert('El servidor de imágenes (opción rápida) está demasiado lleno ahora mismo. Por favor, reintenta en unos instantes.')
-          }
+      if (result.success && result.imageUrl) {
+        if (result.isFallback) {
+          // Si es fallback de Pollinations, usamos nuestra lógica de reintentos
+          const imageObjectUrl = await fetchWithPollinationsRetry(result.imageUrl)
+          setGeneratedImage(imageObjectUrl)
         } else {
-          setGeneratedImage(data.imageUrl)
+          // Si es base64 directo de HF
+          setGeneratedImage(result.imageUrl)
         }
       } else {
-        alert('Error: No se pudo generar la imagen. Reintenta en unos segundos.')
+        throw new Error('Error en API')
       }
     } catch (error) {
       console.error('Error generating image:', error)
-      alert('Error al generar imagen')
+      // FALLBACK DIRECTO AL CLIENTE: Si llegamos aquí, nada funcionó.
+      // Intentamos cargar Pollinations directamente desde el navegador.
+      const directFallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ', professional therapeutic illustration')}?width=1024&height=1024&nologo=true`
+      setGeneratedImage(directFallbackUrl)
     } finally {
       setGeneratingImage(false)
     }
@@ -492,19 +491,32 @@ export default function ContentGenerator() {
                     <h3 className="font-heading text-lg font-semibold text-creser-text">
                       Imagen Generada
                     </h3>
-                    <button
-                      onClick={handleDownloadImage}
-                      className="flex items-center gap-2 px-4 py-2 bg-creser-mint rounded-lg text-sm font-medium hover:bg-creser-mint/80 transition-colors"
+                    <button 
+                      onClick={() => {
+                        const link = document.createElement('a')
+                        link.href = generatedImage
+                        link.download = `cre-ser-${Date.now()}.png`
+                        link.click()
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600"
+                      title="Descargar"
                     >
-                      <Download className="w-4 h-4" />
-                      Descargar
+                      <Download className="w-5 h-5" />
                     </button>
                   </div>
-                  <img
-                    src={generatedImage}
-                    alt="Imagen generada"
-                    className="w-full rounded-xl"
-                  />
+                  {generatedImage.includes('.mp4') || generatedImage.includes('video') ? (
+                    <video src={generatedImage} controls className="w-full rounded-xl shadow-inner bg-gray-50" />
+                  ) : (
+                    <img 
+                      src={generatedImage} 
+                      alt="Imagen generada" 
+                      className="w-full rounded-xl shadow-inner bg-gray-50 object-cover"
+                    />
+                  )}
+                  <p className="mt-4 text-xs text-gray-500 italic text-center">
+                    * Imagen generada con IA para fines ilustrativos. 
+                    Puedes descargarla o usarla como referencia.
+                  </p>
                 </div>
               )}
 
