@@ -1,0 +1,26 @@
+{
+  "tareas": [
+    {
+      "id": 1,
+      "título": "Configurar OpenRouter API Key en .env.local",
+      "estado": "COMPLETADA",
+      "plan_approved": true,
+      "asignado_a": "Backend"
+    },
+    {
+      "id": 2,
+      "título": "Actualizar api/generar-contenido.js para usar OpenRouter",
+      "estado": "COMPLETADA",
+      "plan_approved": true,
+      "asignado_a": "Backend"
+    },
+    {
+      "id": 3,
+      "título": "Eliminar dependencia de Ollama si ya no se usa",
+      "estado": "COMPLETADA",
+      "plan_approved": true,
+      "asignado_a": "Backend"
+    }
+  ],
+  "miembros": ["Alejabot", "Arquitecto", "Backend"]
+}

@@ -1,0 +1,1 @@
+{"de": "Alejabot", "tipo": "BROADCAST", "mensaje": "Equipo, el objetivo es migrar de Ollama a OpenRouter con el modelo MiniMax-M2.5. Procedamos con la actualización de variables de entorno y lógica del backend."}

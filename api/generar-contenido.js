@@ -1,11 +1,7 @@
-import { Ollama } from 'ollama'
+import axios from 'axios'
 
-const ollama = new Ollama({
-  host: process.env.OLLAMA_BASE_URL || 'https://ollama.com',
-  headers: process.env.OLLAMA_API_KEY 
-    ? { Authorization: `Bearer ${process.env.OLLAMA_API_KEY}` }
-    : {}
-})
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
+const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'minimax/minimax-01'
 
 const POLLINATIONS_URL = 'https://image.pollinations.ai'
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL
@@ -27,7 +23,7 @@ export default async function handler(req, res) {
     n8nWebhook = null
   } = req.body || {}
 
-try {
+  try {
     let resultado = await generarContenido({
       tipo,
       servicio,
@@ -80,7 +76,7 @@ try {
     return res.status(500).json({
       success: false,
       error: error.message,
-      message: 'Error conectando con Ollama. Verifica las variables de entorno.'
+      message: 'Error conectando con OpenRouter. Verifica las variables de entorno.'
     })
   }
 }
@@ -123,7 +119,7 @@ Genera contenido para ${tipoContent[tipo] || tipoContent.post} sobre ${servicio}
 Usa este estilo y estructura:
 
 **Gancho** (1 línea impactante):
-- Haz una pregunta o afirmación que sorprenda al родителей
+- Haz una pregunta o afirmación que sorprenda al padre/madre
 - Ejemplo: "¿Sabías que la atención temprana puede marcar la diferencia?"
 
 **Problema** (2-3 líneas):
@@ -151,29 +147,26 @@ Devuelve SOLO un JSON con esta estructura exacta:
 `
 
   try {
-    const response = await ollama.generate({
-      model: 'minimax-m2.5',
-      prompt: prompt,
-      format: 'json',
-      options: {
-        temperature: 0.8,
-        top_p: 0.9,
-        num_predict: 1000
+    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+      model: OPENROUTER_MODEL,
+      messages: [
+        { role: 'user', content: prompt }
+      ],
+      response_format: { type: 'json_object' }
+    }, {
+      headers: {
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': 'https://creser.com.ar',
+        'X-Title': 'CreSer Marketing App'
       }
     })
 
-    const responseText = response.response
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/)
-    
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0])
-    }
-    
-    return parseResponseToJSON(responseText, servicio)
+    const content = response.data.choices[0].message.content
+    return JSON.parse(content)
 
   } catch (error) {
-    console.error('Ollama error:', error.message)
-    throw new Error('Error conectando con Ollama: ' + error.message)
+    console.error('OpenRouter error:', error.response?.data || error.message)
+    throw new Error('Error conectando con OpenRouter: ' + (error.response?.data?.error?.message || error.message))
   }
 }
 
