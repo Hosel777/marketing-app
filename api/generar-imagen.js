@@ -72,15 +72,24 @@ export default async function handler(req, res) {
   }
 
   // Fallback a Pollinations
-  console.log('Usando fallback: Pollinations')
-  const seed = Math.floor(Math.random() * 100000)
-  const cleanPrompt = prompt.substring(0, 400).replace(/[^\w\s,]/g, '')
-  // Cambiamos a pollinations.ai/p/ para ver si es más estable
-  const fallbackUrl = `https://pollinations.ai/p/${encodeURIComponent(cleanPrompt + (tipo === 'comic' ? ' comic style' : ' professional illustration'))}?width=${width}&height=${height}&nologo=true&seed=${seed}`
-  
-  return res.status(200).json({ 
-    success: true, 
-    imageUrl: fallbackUrl,
-    source: 'pollinations_fallback' 
-  })
+  try {
+    console.log('Usando fallback: Pollinations')
+    const seed = Math.floor(Math.random() * 100000)
+    const cleanPrompt = prompt.substring(0, 400).replace(/[^\w\s,]/g, '')
+    const finalPrompt = encodeURIComponent(cleanPrompt + (tipo === 'comic' ? ' comic book illustration' : ' professional therapeutic illustration'))
+    
+    const fallbackUrl = `https://image.pollinations.ai/prompt/${finalPrompt}?width=${width}&height=${height}&nologo=true&seed=${seed}`
+    
+    return res.status(200).json({ 
+      success: true, 
+      imageUrl: fallbackUrl,
+      source: 'pollinations_fallback' 
+    })
+  } catch (fallbackError) {
+    console.error('Error fatal en fallback:', fallbackError.message)
+    return res.status(500).json({ 
+      success: false, 
+      error: 'No se pudo generar la imagen con ningún proveedor' 
+    })
+  }
 }
