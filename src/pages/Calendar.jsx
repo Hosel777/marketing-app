@@ -119,35 +119,36 @@ export default function Calendar() {
           animate={{ opacity: 1, y: 0 }}
           className="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
         >
-          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="p-4 md:p-6 border-b border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               <button onClick={prevMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              <h2 className="font-heading text-xl font-semibold text-creser-text">
+              <h2 className="font-heading text-lg md:text-xl font-semibold text-creser-text w-32 md:w-auto text-center">
                 {format(currentDate, 'MMMM yyyy', { locale: es })}
               </h2>
               <button onClick={nextMonth} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
-            <div className="flex gap-2">
+            <div className="flex bg-gray-50 p-1 rounded-xl">
               <button 
                 onClick={() => setView('month')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'month' ? 'bg-creser-mint text-creser-text' : 'text-creser-text-light hover:bg-gray-100'}`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'month' ? 'bg-white text-creser-text shadow-sm' : 'text-creser-text-light hover:text-creser-text'}`}
               >
                 Mes
               </button>
               <button 
                 onClick={() => setView('week')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${view === 'week' ? 'bg-creser-mint text-creser-text' : 'text-creser-text-light hover:bg-gray-100'}`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === 'week' ? 'bg-white text-creser-text shadow-sm' : 'text-creser-text-light hover:text-creser-text'}`}
               >
                 Semana
               </button>
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4 md:p-6 overflow-x-auto">
+            <div className="min-w-[600px] lg:min-w-0">
             <div className="grid grid-cols-7 gap-2 mb-4">
               {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((day, index) => (
                 <div key={index} className="text-center text-sm font-semibold text-creser-text-light py-2">
@@ -191,7 +192,8 @@ export default function Calendar() {
               })}
             </div>
           </div>
-        </motion.div>
+        </div>
+      </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

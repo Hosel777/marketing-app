@@ -97,12 +97,13 @@ export default function Dashboard() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden bg-gradient-to-r from-creser-blue via-creser-mint to-creser-yellow p-8 md:p-12 rounded-[2rem] shadow-xl shadow-creser-mint/10 border border-white/50"
+        className="relative overflow-hidden bg-gradient-to-r from-creser-blue via-creser-mint to-creser-yellow p-6 md:p-12 rounded-[2rem] shadow-xl shadow-creser-mint/10 border border-white/50"
       >
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="max-w-2xl">
-            <h1 className="font-heading text-3xl md:text-5xl font-bold text-creser-text mb-4 tracking-tight">
-              {greeting()} <span className="text-white/80">Bienvenido a CreSer.</span>
+            <h1 className="font-heading text-3xl md:text-5xl font-bold text-creser-text mb-3 md:mb-4 tracking-tight leading-tight">
+              {greeting()} <br className="block md:hidden" />
+              <span className="text-white/80">Bienvenido a CreSer.</span>
             </h1>
             <p className="text-creser-text text-lg font-medium opacity-90 max-w-md">
               Tu centro de mando para el marketing terapéutico y gestión de pacientes.
@@ -131,23 +132,23 @@ export default function Dashboard() {
         <div className="absolute top-[-10%] right-[-5%] w-64 h-64 bg-white/20 rounded-full blur-3xl" />
         <div className="absolute bottom-[-20%] left-[10%] w-96 h-96 bg-creser-pink/20 rounded-full blur-3xl" />
       </motion.div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {metrics.map((metric, index) => (
           <motion.div
             key={index}
             whileHover={{ y: -5 }}
-            className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 shadow-sm border border-white hover:shadow-xl hover:shadow-creser-mint/10 transition-all cursor-default"
+            className="bg-white/70 backdrop-blur-sm rounded-[1.5rem] md:rounded-3xl p-4 md:p-6 shadow-sm border border-white hover:shadow-xl hover:shadow-creser-mint/10 transition-all cursor-default"
           >
-            <div className="flex items-center justify-between mb-4">
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-creser-mint/20 to-creser-blue/20`}>
-                <metric.icon className="w-6 h-6 text-creser-text" />
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center bg-gradient-to-br from-creser-mint/20 to-creser-blue/20`}>
+                <metric.icon className="w-5 h-5 md:w-6 md:h-6 text-creser-text" />
               </div>
-              <span className={`text-xs font-bold px-2 py-1 rounded-lg ${metric.positive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+              <span className={`text-[10px] md:text-xs font-bold px-1.5 md:py-1 rounded-lg ${metric.positive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                 {metric.change}
               </span>
             </div>
-            <h4 className="text-3xl font-bold text-creser-text mb-1 tracking-tight">{metric.value}</h4>
-            <p className="text-sm font-medium text-creser-text-light">{metric.label}</p>
+            <h4 className="text-xl md:text-3xl font-bold text-creser-text mb-0.5 md:mb-1 tracking-tight truncate">{metric.value}</h4>
+            <p className="text-[10px] md:text-sm font-medium text-creser-text-light truncate">{metric.label}</p>
           </motion.div>
         ))}
       </div>

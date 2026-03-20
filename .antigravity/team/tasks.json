@@ -63,13 +63,13 @@
     {
       "id": 11,
       "título": "Mejora de Visuales: Video Backgrounds en Dashboard",
-      "estado": "PENDIENTE",
+      "estado": "COMPLETED",
       "asignado_a": "Especialista"
     },
     {
       "id": 12,
       "título": "Revisión Final y Pulido de Animaciones",
-      "estado": "PENDIENTE",
+      "estado": "COMPLETED",
       "asignado_a": "Revisor"
     }
   ],

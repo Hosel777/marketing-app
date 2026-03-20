@@ -121,12 +121,13 @@ export default function Sidebar() {
   return (
     <>
       {isMobile && (
-        <button
+        <motion.button
+          whileTap={{ scale: 0.9 }}
           onClick={() => setMobileOpen(true)}
-          className="fixed top-4 left-4 z-50 p-3 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow"
+          className="fixed top-4 left-4 z-50 p-4 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl shadow-creser-mint/10 border border-white/50 hover:bg-white transition-all active:bg-creser-mint"
         >
           <Menu className="w-6 h-6 text-creser-text" />
-        </button>
+        </motion.button>
       )}
 
       <AnimatePresence>
