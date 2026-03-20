@@ -16,7 +16,7 @@ import {
   LogOut,
   Image
 } from 'lucide-react'
-import { supabase } from '../services/supabase'
+import { supabase, getSettings } from '../services/supabase'
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -36,10 +36,11 @@ export default function Sidebar() {
   const location = useLocation()
 
   useEffect(() => {
-    const savedLogo = localStorage.getItem('creser_logo')
-    if (savedLogo) {
-      setLogo(savedLogo)
+    const fetchLogo = async () => {
+      const { data } = await getSettings()
+      if (data?.logo) setLogo(data.logo)
     }
+    fetchLogo()
 
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)

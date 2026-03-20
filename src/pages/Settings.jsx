@@ -12,8 +12,10 @@ import {
   Save,
   Camera,
   Check,
-  ExternalLink
+  ExternalLink,
+  Loader2
 } from 'lucide-react'
+import { getSettings, updateSetting } from '../services/supabase'
 
 const tabs = [
   { id: 'general', label: 'General', icon: User },
@@ -63,6 +65,7 @@ const integrations = [
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('general')
   const [saved, setSaved] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [logoPreview, setLogoPreview] = useState(null)
 
   const handleLogoChange = (e) => {
@@ -77,14 +80,14 @@ export default function Settings() {
   }
 
   const [institutionData, setInstitutionData] = useState({
-    nombre: 'CreSer Equipo Interdisciplinario',
-    email: 'equipocreser@equipocreser.com',
-    telefono: '351-876-3956',
-    direccion: 'Niceto Vega 1844, Barrio Patricios Oeste, Córdoba',
-    instagram: '@equipocreser',
-    facebook: 'cresercba',
-    linkedin: 'CreSer Equipo Interdisciplinario',
-    horarios: 'Lunes a Viernes: 8:00 a 20:00',
+    nombre: '',
+    email: '',
+    telefono: '',
+    direccion: '',
+    instagram: '',
+    facebook: '',
+    linkedin: '',
+    horarios: '',
   })
 
   const [notifications, setNotifications] = useState({
@@ -96,41 +99,59 @@ export default function Settings() {
     pushNotifications: true,
   })
 
-  const handleSave = () => {
-    localStorage.setItem('creser_institution_data', JSON.stringify(institutionData))
-    localStorage.setItem('creser_notifications', JSON.stringify(notifications))
-    localStorage.setItem('creser_logo', logoPreview || '')
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const { data } = await getSettings()
+      if (data) {
+        if (data.institution) setInstitutionData(JSON.parse(data.institution))
+        if (data.notifications) setNotifications(JSON.parse(data.notifications))
+        if (data.logo) setLogoPreview(data.logo)
+      }
+    } catch (e) {
+      console.error('Error fetching settings:', e)
+    }
+    setLoading(false)
   }
 
   useEffect(() => {
-    const savedData = localStorage.getItem('creser_institution_data')
-    if (savedData) {
-      setInstitutionData(JSON.parse(savedData))
-    }
-    const savedLogo = localStorage.getItem('creser_logo')
-    if (savedLogo) {
-      setLogoPreview(savedLogo)
-    }
-    const savedNotifications = localStorage.getItem('creser_notifications')
-    if (savedNotifications) {
-      setNotifications(JSON.parse(savedNotifications))
-    }
+    fetchData()
   }, [])
+
+  const handleSave = async () => {
+    setSaved(false)
+    setLoading(true)
+    try {
+      await Promise.all([
+        updateSetting('institution', JSON.stringify(institutionData)),
+        updateSetting('notifications', JSON.stringify(notifications)),
+        updateSetting('logo', logoPreview || '')
+      ])
+      setSaved(true)
+    } catch (e) {
+      console.error('Error saving settings:', e)
+    }
+    setLoading(false)
+    setTimeout(() => setSaved(false), 3000)
+  }
+
 
   return (
     <div className="space-y-8">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
       >
-        <h1 className="font-heading text-3xl font-bold text-creser-text mb-2">
-          Configuración
-        </h1>
-        <p className="text-creser-text-light">
-          Administra la configuración de tu aplicación de marketing
-        </p>
+        <div>
+          <h1 className="font-heading text-3xl font-bold text-creser-text mb-2 flex items-center gap-3">
+            Configuración
+            {loading && <Loader2 className="w-6 h-6 animate-spin text-creser-mint" />}
+          </h1>
+          <p className="text-creser-text-light">
+            Administra la configuración de tu aplicación de marketing
+          </p>
+        </div>
       </motion.div>
 
       <div className="flex flex-col md:flex-row gap-6 md:gap-8">
