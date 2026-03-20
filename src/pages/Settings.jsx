@@ -133,25 +133,25 @@ export default function Settings() {
         </p>
       </motion.div>
 
-      <div className="flex gap-8">
+      <div className="flex flex-col md:flex-row gap-6 md:gap-8">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="w-64 flex-shrink-0"
+          className="w-full md:w-64 flex-shrink-0"
         >
-          <nav className="space-y-1">
+          <nav className="flex md:flex-col gap-2 overflow-x-auto md:overflow-visible pb-4 md:pb-0 scrollbar-hide">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                className={`flex items-center gap-3 px-5 py-3 rounded-2xl transition-all whitespace-nowrap min-w-fit md:w-full ${
                   activeTab === tab.id
-                    ? 'bg-creser-mint/30 text-creser-text font-semibold'
-                    : 'text-creser-text-light hover:bg-gray-50 hover:text-creser-text'
+                    ? 'bg-creser-mint text-creser-text font-bold shadow-lg shadow-creser-mint/10 border border-creser-mint/20'
+                    : 'bg-white border border-gray-100 text-creser-text-light hover:bg-gray-50 hover:text-creser-text'
                 }`}
               >
-                <tab.icon className="w-5 h-5" />
-                {tab.label}
+                <tab.icon className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm">{tab.label}</span>
               </button>
             ))}
           </nav>
@@ -160,7 +160,7 @@ export default function Settings() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex-1"
+          className="flex-1 w-full min-w-0"
         >
           {activeTab === 'general' && (
             <div className="space-y-6">
