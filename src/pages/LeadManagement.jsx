@@ -55,6 +55,24 @@ export default function LeadManagement() {
     { label: 'Convertidos', value: leads.filter(l => l.estado === 'convertido').length.toString(), icon: Users, color: 'bg-creser-pink' },
   ]
 
+  const handleUpdateStatus = (id, newStatus) => {
+    setLeads(prev => prev.map(l => l.id === id ? { ...acc, estado: newStatus } : l))
+    alert(`Estado del lead actualizado a: ${newStatus}`)
+  }
+
+  const handleExport = () => {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + ["Nombre", "Email", "Servicio", "Estado"].join(",") + "\n"
+      + filteredLeads.map(l => [l.nombre, l.email, l.servicio_interes, l.estado].join(",")).join("\n")
+    
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement("a")
+    link.setAttribute("href", encodedUri)
+    link.setAttribute("download", `leads-creser-${new Date().toLocaleDateString()}.csv`)
+    document.body.appendChild(link)
+    link.click()
+  }
+
   const getEstadoColor = (estado) => {
     switch(estado) {
       case 'nuevo': return 'bg-green-100 text-green-700'
@@ -83,17 +101,26 @@ export default function LeadManagement() {
           <h1 className="font-heading text-3xl font-bold text-creser-text mb-2">
             Gestión de Leads
           </h1>
-          <p className="text-creser-text-light">
-            Administra y haz seguimiento de tus prospectos
+          <p className="text-creser-text-light font-medium">
+            Administra y haz seguimiento de tus prospectos en tiempo real
           </p>
         </div>
-        <button 
-          onClick={fetchLeads}
-          className="flex items-center gap-2 px-4 py-2 bg-creser-mint text-creser-text font-semibold rounded-xl hover:bg-creser-mint/80 transition-colors"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Actualizar
-        </button>
+        <div className="flex gap-3">
+          <button 
+            onClick={handleExport}
+            className="flex items-center gap-2 px-5 py-3 bg-white border border-gray-100 rounded-2xl text-sm font-bold text-creser-text shadow-sm hover:shadow-md transition-all active:scale-95"
+          >
+            <Download className="w-4 h-4" />
+            Exportar CSV
+          </button>
+          <button 
+            onClick={fetchLeads}
+            className="flex items-center gap-2 px-5 py-3 bg-creser-mint text-creser-text font-bold rounded-2xl shadow-lg shadow-creser-mint/20 hover:bg-creser-mint/80 transition-all active:scale-95"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </button>
+        </div>
       </motion.div>
 
       <motion.div
@@ -201,30 +228,36 @@ export default function LeadManagement() {
                       {lead.fuente || 'web'}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getEstadoColor(lead.estado)}`}>
-                        {lead.estado || 'nuevo'}
-                      </span>
+                      <select
+                        value={lead.estado || 'nuevo'}
+                        onChange={(e) => handleUpdateStatus(lead.id, e.target.value)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border-none outline-none cursor-pointer transition-all ${getEstadoColor(lead.estado)}`}
+                      >
+                        {filters.estados.filter(e => e !== 'Todos').map(st => (
+                          <option key={st} value={st}>{st.charAt(0).toUpperCase() + st.slice(1)}</option>
+                        ))}
+                      </select>
                     </td>
                     <td className="px-6 py-4">
-                      <div className={`px-2 py-1 rounded-lg ${getSentimentColor(lead.sentiment_score)} flex items-center gap-1 w-fit`}>
-                        <span className="text-sm font-medium">{lead.sentiment_score || 50}%</span>
+                      <div className={`px-3 py-1.5 rounded-xl ${getSentimentColor(lead.sentiment_score)} flex items-center justify-center gap-1 w-fit shadow-sm border border-white`}>
+                        <span className="text-xs font-bold text-creser-text">{lead.sentiment_score || 50}%</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-creser-text-light">
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
+                    <td className="px-6 py-4 text-sm text-creser-text-light font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 opacity-50" />
                         {lead.created_at ? new Date(lead.created_at).toLocaleDateString('es-AR') : '-'}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <a href={`tel:${lead.telefono}`} className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Llamar">
+                        <a href={`tel:${lead.telefono}`} className="p-2.5 bg-gray-50 border border-gray-100 hover:bg-white hover:shadow-md rounded-xl transition-all" title="Llamar">
                           <Phone className="w-4 h-4 text-creser-text" />
                         </a>
-                        <a href={`mailto:${lead.email}`} className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Email">
+                        <a href={`mailto:${lead.email}`} className="p-2.5 bg-gray-50 border border-gray-100 hover:bg-white hover:shadow-md rounded-xl transition-all" title="Email">
                           <Mail className="w-4 h-4 text-blue-600" />
                         </a>
-                        <a href={`https://wa.me/${lead.telefono?.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="WhatsApp">
+                        <a href={`https://wa.me/${lead.telefono?.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="p-2.5 bg-gray-50 border border-gray-100 hover:bg-white hover:shadow-md rounded-xl transition-all" title="WhatsApp">
                           <MessageCircle className="w-4 h-4 text-green-600" />
                         </a>
                       </div>
