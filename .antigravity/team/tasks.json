@@ -51,14 +51,26 @@
     {
       "id": 9,
       "título": "Integración de Calendario Editorial con Supabase",
-      "estado": "PENDIENTE",
+      "estado": "COMPLETED",
       "asignado_a": "Arquitecto"
     },
     {
       "id": 10,
       "título": "Librería de Medios (Explorador de Historial)",
-      "estado": "PENDIENTE",
+      "estado": "COMPLETED",
       "asignado_a": "Frontend"
+    },
+    {
+      "id": 11,
+      "título": "Mejora de Visuales: Video Backgrounds en Dashboard",
+      "estado": "PENDIENTE",
+      "asignado_a": "Especialista"
+    },
+    {
+      "id": 12,
+      "título": "Revisión Final y Pulido de Animaciones",
+      "estado": "PENDIENTE",
+      "asignado_a": "Revisor"
     }
   ],
   "miembros": [

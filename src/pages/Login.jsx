@@ -30,8 +30,33 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-creser-mint/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-creser-pink/20 rounded-full blur-3xl animate-pulse" />
+        {[...Array(6)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ 
+              x: Math.random() * window.innerWidth, 
+              y: Math.random() * window.innerHeight,
+              scale: Math.random() + 0.5,
+              opacity: 0.2
+            }}
+            animate={{ 
+              x: [null, Math.random() * window.innerWidth, Math.random() * window.innerWidth],
+              y: [null, Math.random() * window.innerHeight, Math.random() * window.innerHeight],
+              scale: [1, 1.2, 0.8, 1],
+              rotate: [0, 180, 360]
+            }}
+            transition={{ 
+              duration: 20 + Math.random() * 10, 
+              repeat: Infinity, 
+              ease: "linear" 
+            }}
+            className={`absolute w-96 h-96 rounded-full blur-[80px] ${
+              i % 3 === 0 ? 'bg-creser-mint/30' : 
+              i % 3 === 1 ? 'bg-creser-blue/20' : 
+              'bg-creser-pink/20'
+            }`}
+          />
+        ))}
       </div>
 
       <motion.div

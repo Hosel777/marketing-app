@@ -85,58 +85,72 @@ export default function Dashboard() {
     { label: 'Convertidos', value: convertidos.toString(), change: '+5%', positive: true, icon: Eye },
   ]
 
+  const greeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) return '¡Buen día!'
+    if (hour < 20) return '¡Buenas tardes!'
+    return '¡Buenas noches!'
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+        className="relative overflow-hidden bg-gradient-to-r from-creser-blue via-creser-mint to-creser-yellow p-8 md:p-12 rounded-[2rem] shadow-xl shadow-creser-mint/10 border border-white/50"
       >
-        <div>
-          <h1 className="font-heading text-2xl md:text-3xl font-bold text-creser-text mb-1">
-            Dashboard
-          </h1>
-          <p className="text-creser-text-light text-sm">
-            Métricas en tiempo real desde Supabase
-          </p>
-        </div>
-        <button 
-          onClick={fetchData}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-creser-mint/50 rounded-xl text-sm font-medium text-creser-text hover:bg-creser-mint transition-colors"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Actualizar
-        </button>
-      </motion.div>
-
-      {lastUpdate && (
-        <p className="text-xs text-creser-text-light">
-          Última actualización: {lastUpdate.toLocaleTimeString('es-AR')}
-        </p>
-      )}
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid grid-cols-2 md:grid-cols-4 gap-4"
-      >
-        {metrics.map((metric, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-creser-mint/30 to-creser-blue/30 flex items-center justify-center">
-                <metric.icon className="w-5 h-5 text-creser-text" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-creser-text">{metric.value}</p>
-            <p className="text-xs text-creser-text-light">{metric.label}</p>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <div className="max-w-2xl">
+            <h1 className="font-heading text-3xl md:text-5xl font-bold text-creser-text mb-4 tracking-tight">
+              {greeting()} <span className="text-white/80">Bienvenido a CreSer.</span>
+            </h1>
+            <p className="text-creser-text text-lg font-medium opacity-90 max-w-md">
+              Tu centro de mando para el marketing terapéutico y gestión de pacientes.
+            </p>
           </div>
-        ))}
+          <div className="flex flex-wrap gap-3">
+            <button 
+              onClick={fetchData}
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-4 bg-white/90 backdrop-blur-md rounded-2xl text-creser-text font-bold shadow-lg hover:bg-white transition-all disabled:opacity-50 group active:scale-95"
+            >
+              <RefreshCw className={`w-5 h-5 group-hover:rotate-180 transition-transform duration-500 ${loading ? 'animate-spin' : ''}`} />
+              Actualizar datos
+            </button>
+            <button 
+              onClick={() => window.location.href = '/generador-contenido'}
+              className="flex items-center gap-2 px-6 py-4 bg-creser-text text-white rounded-2xl font-bold shadow-lg hover:bg-gray-800 transition-all active:scale-95"
+            >
+              <TrendingUp className="w-5 h-5" />
+              Nuevo Contenido
+            </button>
+          </div>
+        </div>
+
+        {/* Abstract background shapes */}
+        <div className="absolute top-[-10%] right-[-5%] w-64 h-64 bg-white/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-[-20%] left-[10%] w-96 h-96 bg-creser-pink/20 rounded-full blur-3xl" />
       </motion.div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        {metrics.map((metric, index) => (
+          <motion.div
+            key={index}
+            whileHover={{ y: -5 }}
+            className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 shadow-sm border border-white hover:shadow-xl hover:shadow-creser-mint/10 transition-all cursor-default"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-creser-mint/20 to-creser-blue/20`}>
+                <metric.icon className="w-6 h-6 text-creser-text" />
+              </div>
+              <span className={`text-xs font-bold px-2 py-1 rounded-lg ${metric.positive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {metric.change}
+              </span>
+            </div>
+            <h4 className="text-3xl font-bold text-creser-text mb-1 tracking-tight">{metric.value}</h4>
+            <p className="text-sm font-medium text-creser-text-light">{metric.label}</p>
+          </motion.div>
+        ))}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <motion.div

@@ -156,7 +156,7 @@ export default function Sidebar() {
         <motion.aside
           initial={{ x: -250 }}
           animate={{ x: 0 }}
-          className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-gray-200 flex flex-col z-50"
+          className="fixed left-4 top-4 bottom-4 w-64 bg-white/80 backdrop-blur-xl border border-white/50 flex flex-col z-50 rounded-[2.5rem] shadow-2xl shadow-creser-mint/10 overflow-hidden"
         >
           <SidebarContent />
         </motion.aside>
