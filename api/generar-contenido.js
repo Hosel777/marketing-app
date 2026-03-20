@@ -1,6 +1,13 @@
+import OpenAI from 'openai'
+
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'openrouter/free'
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL
+
+const openRouterClient = new OpenAI({
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: OPENROUTER_API_KEY,
+})
 
 export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json')
@@ -104,7 +111,8 @@ Estructura: Gancho impactante, Problema empático, Solución CreSer, Llamado a l
 Usa emojis. Devuelve SOLO JSON: {"copy": "...", "hashtags": ["#..."], "topic": "...", "promptVisual": "..."}`
 
   const primaryModel = OPENROUTER_API_KEY ? OPENROUTER_MODEL : 'meta-llama/llama-3.1-8b-instruct:free'
-  const modelsToTry = [primaryModel, 'meta-llama/llama-3.1-8b-instruct:free', 'google/gemini-flash-1.5-exp:free']
+  const modelToTryReasoning = 'minimax/minimax-m2.5:free'
+  const modelsToTry = [modelToTryReasoning, primaryModel, 'meta-llama/llama-3.1-8b-instruct:free', 'google/gemini-flash-1.5-exp:free']
 
   for (const model of modelsToTry) {
     try {
@@ -113,34 +121,51 @@ Usa emojis. Devuelve SOLO JSON: {"copy": "...", "hashtags": ["#..."], "topic": "
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 20000)
 
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://creser.com.ar',
-          'X-Title': 'CreSer Marketing App'
-        },
-        body: JSON.stringify({
+      let content
+      
+      if (model.includes('minimax')) {
+        // Implementación con razonamiento para MiniMax
+        const apiResponse = await openRouterClient.chat.completions.create({
           model: model,
           messages: [
-            { role: 'system', content: 'Eres un experto en marketing terapéutico para CreSer Córdoba. Devuelve siempre JSON puro.' },
+            { role: 'system', content: 'Eres un experto en marketing terapéutico para CreSer Córdoba. Generas copys profesionales y empáticos. Devuelve siempre JSON puro.' },
             { role: 'user', content: prompt }
           ],
+          reasoning: { enabled: true },
           response_format: { type: 'json_object' }
-        }),
-        signal: controller.signal
-      })
+        })
+        content = apiResponse.choices[0].message.content
+      } else {
+        // Implementación estándar para otros modelos
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://creser.com.ar',
+            'X-Title': 'CreSer Marketing App'
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [
+              { role: 'system', content: 'Eres un experto en marketing terapéutico para CreSer Córdoba. Devuelve siempre JSON puro.' },
+              { role: 'user', content: prompt }
+            ],
+            response_format: { type: 'json_object' }
+          }),
+          signal: controller.signal
+        })
 
-      clearTimeout(timeoutId)
+        if (!response.ok) {
+          const errText = await response.text()
+          throw new Error(`OpenRouter HTTP ${response.status}: ${errText.substring(0, 100)}`)
+        }
 
-      if (!response.ok) {
-        const errText = await response.text()
-        throw new Error(`OpenRouter HTTP ${response.status}: ${errText.substring(0, 100)}`)
+        const data = await response.json()
+        content = data.choices[0].message.content
       }
 
-      const data = await response.json()
-      const content = data.choices[0].message.content
+      clearTimeout(timeoutId)
       const parsed = JSON.parse(content.replace(/```json/g, '').replace(/```/g, ''))
       
       return {
