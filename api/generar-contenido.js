@@ -112,7 +112,7 @@ Usa emojis. Devuelve SOLO JSON: {"copy": "...", "hashtags": ["#..."], "topic": "
 
   const primaryModel = OPENROUTER_API_KEY ? OPENROUTER_MODEL : 'meta-llama/llama-3.1-8b-instruct:free'
   const modelToTryReasoning = 'minimax/minimax-m2.5:free'
-  const modelsToTry = [modelToTryReasoning, primaryModel, 'meta-llama/llama-3.1-8b-instruct:free', 'google/gemini-flash-1.5-exp:free']
+  const modelsToTry = [modelToTryReasoning, primaryModel, 'meta-llama/llama-3.1-8b-instruct:free', 'google/gemini-2.0-flash-lite-preview-02-05:free']
 
   for (const model of modelsToTry) {
     try {
