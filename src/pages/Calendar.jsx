@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
   ChevronLeft, 
@@ -14,19 +14,13 @@ import {
   Clock,
   MoreVertical,
   Trash2,
-  Edit
+  Edit,
+  Loader2,
+  Calendar as CalendarIcon
 } from 'lucide-react'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns'
 import { es } from 'date-fns/locale'
-
-const scheduledContent = [
-  { id: 1, titulo: '5 señales de que tu hijo necesita fonoaudiología', tipo: 'Carousel', plataforma: 'instagram', fecha: '2024-03-17', hora: '18:00', estado: 'publicado' },
-  { id: 2, titulo: 'Tips para manejar la ansiedad en niños', tipo: 'Post', plataforma: 'facebook', fecha: '2024-03-18', hora: '10:00', estado: 'programado' },
-  { id: 3, titulo: 'Inclusión educativa: derechos en Córdoba', tipo: 'Artículo', plataforma: 'linkedin', fecha: '2024-03-22', hora: '09:00', estado: 'borrador' },
-  { id: 4, titulo: 'Ejercicios de psicomotricidad en casa', tipo: 'Reel', plataforma: 'instagram', fecha: '2024-03-19', hora: '12:00', estado: 'programado' },
-  { id: 5, titulo: 'Mitos y verdades sobre la terapia psicológica', tipo: 'Post', plataforma: 'facebook', fecha: '2024-03-20', hora: '15:00', estado: 'borrador' },
-  { id: 6, titulo: 'Día del Psicólogo - Especial', tipo: 'Carousel', plataforma: 'instagram', fecha: '2024-03-21', hora: '10:00', estado: 'programado' },
-]
+import { getScheduledContent } from '../services/supabase'
 
 const suggestedEvents = [
   { fecha: '2024-03-02', titulo: 'Día Mundial del Autismo', tipo: 'conciencia' },
@@ -60,6 +54,28 @@ export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(null)
   const [view, setView] = useState('month')
+  const [scheduledContent, setScheduledContent] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchData = async () => {
+    setLoading(true)
+    const { data } = await getScheduledContent()
+    // Normalizamos los datos de Supabase para que coincidan con la UI
+    const normalizedData = (data || []).map(item => ({
+      ...item,
+      fecha: item.fecha_publicacion || item.fecha || format(new Date(item.created_at || item.creado_en), 'yyyy-MM-dd'),
+      titulo: item.titulo,
+      plataforma: item.plataforma || 'instagram',
+      tipo: item.tipo || 'Post',
+      estado: item.estado || 'borrador'
+    }))
+    setScheduledContent(normalizedData)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
 
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(currentDate)
@@ -187,34 +203,62 @@ export default function Calendar() {
             <h3 className="font-heading text-lg font-semibold text-creser-text mb-4">
               {selectedDate ? format(selectedDate, 'd MMMM', { locale: es }) : 'Contenido Programado'}
             </h3>
-            {selectedDate ? (
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-creser-mint mb-2" />
+                <p className="text-sm text-creser-text-light">Cargando contenido...</p>
+              </div>
+            ) : selectedDate ? (
               <div className="space-y-3">
                 {getContentForDate(selectedDate).length > 0 ? (
                   getContentForDate(selectedDate).map((content) => (
-                    <div key={content.id} className="p-3 bg-gray-50 rounded-xl">
+                    <div key={content.id} className="p-3 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 hover:border-creser-mint/30 transition-all">
+                      {content.imagen_url && (
+                        <div className="relative group mb-3">
+                          <img 
+                            src={content.imagen_url} 
+                            alt={content.titulo} 
+                            className="w-full h-32 object-cover rounded-lg shadow-sm"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-lg">
+                            <span className="text-white text-xs font-semibold">Ver completo</span>
+                          </div>
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 mb-2">
                         {getPlataformaIcon(content.plataforma)}
                         {getTipoIcon(content.tipo)}
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
                           content.estado === 'publicado' ? 'bg-green-100 text-green-700' :
                           content.estado === 'programado' ? 'bg-blue-100 text-blue-700' :
-                          'bg-gray-100 text-gray-700'
+                          'bg-creser-mint/20 text-creser-text'
                         }`}>
                           {content.estado}
                         </span>
                       </div>
-                      <p className="text-sm font-medium text-creser-text">{content.titulo}</p>
-                      <div className="flex items-center gap-1 mt-2 text-xs text-creser-text-light">
-                        <Clock className="w-3 h-3" />
-                        {content.hora}
+                      <p className="text-sm font-bold text-creser-text line-clamp-2">{content.titulo}</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-center gap-1 text-xs text-creser-text-light">
+                          <Clock className="w-3 h-3" />
+                          {content.hora || 'Sin hora'}
+                        </div>
+                        <button className="p-1 hover:bg-white rounded-md transition-colors">
+                          <MoreVertical className="w-4 h-4 text-gray-400" />
+                        </button>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-creser-text-light">No hay contenido programado</p>
+                  <div className="text-center py-8">
+                    <CalendarIcon className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+                    <p className="text-sm text-creser-text-light">No hay contenido para este día</p>
+                  </div>
                 )}
-                <button className="w-full py-2 border-2 border-dashed border-gray-300 rounded-xl text-sm text-creser-text-light hover:border-creser-mint hover:text-creser-text transition-colors">
-                  + Agregar contenido
+                <button 
+                  onClick={() => window.location.href = '/generador-contenido'}
+                  className="w-full py-2 border-2 border-dashed border-gray-200 rounded-xl text-sm text-creser-text-light hover:border-creser-mint hover:text-creser-text transition-all hover:bg-creser-mint/5"
+                >
+                  + Generar nuevo con IA
                 </button>
               </div>
             ) : (

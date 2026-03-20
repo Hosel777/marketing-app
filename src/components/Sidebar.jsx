@@ -13,13 +13,15 @@ import {
   Menu,
   X,
   ChevronLeft,
-  LogOut
+  LogOut,
+  Image
 } from 'lucide-react'
 import { supabase } from '../services/supabase'
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/generador-contenido', label: 'Generador IA', icon: Wand2 },
+  { path: '/biblioteca', label: 'Biblioteca', icon: Image },
   { path: '/leads', label: 'Leads', icon: Users },
   { path: '/calendario', label: 'Calendario', icon: CalendarDays },
   { path: '/analytics', label: 'Analytics', icon: BarChart3 },

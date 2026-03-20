@@ -10,6 +10,7 @@ import Analytics from './pages/Analytics'
 import SocialMedia from './pages/SocialMedia'
 import Settings from './pages/Settings'
 import Login from './pages/Login'
+import MediaLibrary from './pages/MediaLibrary'
 
 function App() {
   const [session, setSession] = useState(null)
@@ -58,6 +59,7 @@ function App() {
             <Route path="/leads" element={<LeadManagement />} />
             <Route path="/calendario" element={<Calendar />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/biblioteca" element={<MediaLibrary />} />
             <Route path="/redes-sociales" element={<SocialMedia />} />
             <Route path="/configuracion" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" replace />} />

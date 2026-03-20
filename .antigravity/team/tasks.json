@@ -39,12 +39,24 @@
     {
       "id": 7,
       "título": "Consumo de Kling AI en api/generar-video.js vía n8n",
-      "estado": "PENDIENTE",
+      "estado": "COMPLETED",
       "asignado_a": "Backend"
     },
     {
       "id": 8,
       "título": "Botón 'Publicar Ahora' y Sincronización con Webhook de n8n",
+      "estado": "COMPLETED",
+      "asignado_a": "Frontend"
+    },
+    {
+      "id": 9,
+      "título": "Integración de Calendario Editorial con Supabase",
+      "estado": "PENDIENTE",
+      "asignado_a": "Arquitecto"
+    },
+    {
+      "id": 10,
+      "título": "Librería de Medios (Explorador de Historial)",
       "estado": "PENDIENTE",
       "asignado_a": "Frontend"
     }

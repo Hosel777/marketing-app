@@ -10,7 +10,7 @@ import {
   Calendar
 } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { getLeads } from '../services/supabase'
+import { getLeads, getScheduledContent } from '../services/supabase'
 
 const weeklyData = [
   { name: 'Lun', leads: 0, engagement: 0 },
@@ -33,13 +33,18 @@ const serviceColors = {
 
 export default function Dashboard() {
   const [leads, setLeads] = useState([])
+  const [recentContent, setRecentContent] = useState([])
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState(null)
 
   const fetchData = async () => {
     setLoading(true)
-    const { data } = await getLeads()
-    setLeads(data || [])
+    const [leadsRes, contentRes] = await Promise.all([
+      getLeads(),
+      getScheduledContent()
+    ])
+    setLeads(leadsRes.data || [])
+    setRecentContent((contentRes.data || []).slice(0, 3))
     setLastUpdate(new Date())
     setLoading(false)
   }
@@ -284,6 +289,59 @@ export default function Dashboard() {
           ) : (
             <div className="text-center py-8 text-creser-text-light text-sm">
               Sin datos aún
+            </div>
+          )}
+        </motion.div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <motion.div
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ delay: 0.6 }}
+           className="lg:col-span-2 bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-heading text-xl font-semibold text-creser-text">
+              Propuestas IA Recientes
+            </h3>
+            <button 
+              onClick={() => window.location.href = '/calendario'}
+              className="text-creser-mint text-sm font-semibold hover:underline"
+            >
+              Ver todo el historial →
+            </button>
+          </div>
+          {recentContent.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {recentContent.map((content) => (
+                <div key={content.id} className="group flex flex-col p-4 bg-gray-50 rounded-2xl hover:bg-creser-mint/5 transition-all border border-transparent hover:border-creser-mint/20 cursor-pointer">
+                  <div className="aspect-square rounded-xl bg-gray-200 overflow-hidden mb-4 shadow-sm relative">
+                    {content.imagen_url ? (
+                      <img src={content.imagen_url} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-creser-violet/10">
+                        <Calendar className="w-8 h-8 text-creser-violet/30" />
+                      </div>
+                    )}
+                    <span className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] uppercase font-bold text-creser-text shadow-sm">
+                      {content.plataforma}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-creser-text text-sm mb-1 line-clamp-2">{content.titulo}</p>
+                    <p className="text-xs text-creser-text-light">{content.servicio} • {content.tipo}</p>
+                    <div className="flex items-center justify-between mt-4">
+                      <span className="text-[10px] uppercase font-black text-creser-mint">{content.estado}</span>
+                      <span className="text-[10px] text-gray-400">{new Date(content.created_at || content.creado_en).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-creser-text-light text-sm border-2 border-dashed border-gray-100 rounded-2xl">
+              <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-20" />
+              Todavía no has generado contenido con IA
             </div>
           )}
         </motion.div>
