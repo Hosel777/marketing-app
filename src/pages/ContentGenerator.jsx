@@ -240,7 +240,7 @@ export default function ContentGenerator() {
     setGeneratingImage(true)
     setGeneratedImage(null)
 
-    const prompt = `${formData.service}: ${generatedContent.topic || 'terapia infantil'}. Professional realistic photo, high quality, 4k`
+    const prompt = generatedContent.promptVisual || `${formData.service}: ${formData.topic || 'bienestar y salud'}. Professional high quality photo.`
 
     try {
       const response = await fetch('/api/generar-imagen', {
@@ -403,17 +403,20 @@ export default function ContentGenerator() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-creser-text mb-2">Tema (opcional)</label>
-                <select
+                <label className="block text-sm font-medium text-creser-text mb-2">Tema (escribe el tuyo o elige uno)</label>
+                <input
+                  type="text"
+                  list="topic-suggestions"
                   value={formData.topic}
                   onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                  placeholder="Ej: Mindfulness para adultos, Terapia de pareja..."
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-creser-mint outline-none"
-                >
-                  <option value="">Aleatorio</option>
+                />
+                <datalist id="topic-suggestions">
                   {(templatesByService[formData.service]?.topics || []).map((topic) => (
-                    <option key={topic} value={topic}>{topic}</option>
+                    <option key={topic} value={topic} />
                   ))}
-                </select>
+                </datalist>
               </div>
 
               <button

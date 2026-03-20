@@ -20,9 +20,9 @@ const HF_MODELS = [
 const createEnhancedPrompt = (prompt, tipo = 'post') => {
   const isComic = tipo === 'comic'
   const style = isComic 
-    ? ', comic book style, vibrant colors, clear outlines, professional therapeutic illustration, friendly characters, high quality, no text'
-    : ', professional therapeutic illustration, soft pastel colors (mint, light yellow, soft pink), warm and welcoming, high quality, detailed, no text in image'
-  return prompt.substring(0, 500) + style
+    ? ', comic book style, vibrant colors, clear outlines, professional illustration, high quality, no text'
+    : ', professional and inclusive atmosphere, warm lighting, high quality, detailed, realistic, no text in image'
+  return prompt.substring(0, 700) + style
 }
 
 export default async function handler(req, res) {

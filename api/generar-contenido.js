@@ -128,7 +128,16 @@ Usa emojis. Devuelve SOLO JSON: {"copy": "...", "hashtags": ["#..."], "topic": "
         const apiResponse = await openRouterClient.chat.completions.create({
           model: model,
           messages: [
-            { role: 'system', content: 'Eres un experto en marketing terapéutico para CreSer Córdoba. Generas copys profesionales y empáticos. Devuelve siempre JSON puro.' },
+            { 
+              role: 'system', 
+              content: `Eres un experto en marketing terapéutico para CreSer Córdoba. 
+              CreSer atiende a niños, adolescentes y adultos en áreas como Psicología, Fonoaudiología y más.
+              Generas copys profesionales, empáticos y modernos.
+              IMPORTANTE: En el campo "promptVisual", describe una escena fotorealista que represente el tema. 
+              Asegúrate de que la edad de las personas en la descripción (niños, jóvenes o adultos) coincida exactamente con el público objetivo del tema proporcionado.
+              No uses texto dentro de la imagen. 
+              Devuelve siempre JSON puro.` 
+            },
             { role: 'user', content: prompt }
           ],
           reasoning: { enabled: true },
@@ -148,7 +157,10 @@ Usa emojis. Devuelve SOLO JSON: {"copy": "...", "hashtags": ["#..."], "topic": "
           body: JSON.stringify({
             model: model,
             messages: [
-              { role: 'system', content: 'Eres un experto en marketing terapéutico para CreSer Córdoba. Devuelve siempre JSON puro.' },
+              { 
+                role: 'system', 
+                content: 'Eres un experto en marketing terapéutico para CreSer Córdoba (niños, jóvenes y adultos). Genera el "promptVisual" pensando siempre en la edad correcta según el tema. Devuelve siempre JSON puro.' 
+              },
               { role: 'user', content: prompt }
             ],
             response_format: { type: 'json_object' }
