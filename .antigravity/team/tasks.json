@@ -27,13 +27,13 @@
     {
       "id": 5,
       "título": "Implementación de Autenticación Supabase (Terapeuta/Admin)",
-      "estado": "PENDIENTE",
+      "estado": "COMPLETED",
       "asignado_a": "Arquitecto"
     },
     {
       "id": 6,
       "título": "Esquema de Base de Datos para Historial de Contenido",
-      "estado": "PENDIENTE",
+      "estado": "COMPLETED",
       "asignado_a": "Arquitecto"
     },
     {

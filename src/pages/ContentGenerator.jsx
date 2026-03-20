@@ -16,7 +16,8 @@ import {
   RefreshCw,
   Loader2,
   Save,
-  Database
+  Database,
+  Share2
 } from 'lucide-react'
 import { saveContentHistory } from '../services/supabase'
 
@@ -162,6 +163,32 @@ export default function ContentGenerator() {
   const [generatedContent, setGeneratedContent] = useState(null)
   const [generatedImage, setGeneratedImage] = useState(null)
   const [savingHistory, setSavingHistory] = useState(false)
+  const [publishing, setPublishing] = useState(false)
+
+  const handlePublishToN8N = async () => {
+    if (!generatedContent) return
+    setPublishing(true)
+    try {
+      const response = await fetch('/api/publicar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: generatedContent,
+          type: formData.contentType,
+          platform: formData.platform,
+          service: formData.service,
+          imageUrl: generatedImage
+        })
+      })
+      if (!response.ok) throw new Error('Error al publicar')
+      alert('¡Listo! n8n ha recibido tu contenido para publicarlo en el Calendario y Redes ✨')
+    } catch (error) {
+      console.error('Error in n8n publish:', error)
+      alert('Error al conectar con n8n. Verifica el Webhook URL en la configuración.')
+    } finally {
+      setPublishing(false)
+    }
+  }
 
   const handleSaveToHistory = async () => {
     if (!generatedContent) return
@@ -310,31 +337,28 @@ export default function ContentGenerator() {
 
   const handleGenerateVideo = async () => {
     if (!generatedContent) return
-
     setGeneratingImage(true)
     try {
+      const prompt = generatedContent.promptVisual || `${formData.service}: ${formData.topic || 'bienestar y salud'}. Cinematic professional therapy.`
       const response = await fetch('/api/generar-video', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `${generatedContent.service}: ${generatedContent.topic}. Professional video clip, healthcare theme, children, warm colors`
-        })
+        body: JSON.stringify({ prompt, service: formData.service })
       })
-
       const data = await response.json()
-
-      if (data.videoUrl) {
-        setGeneratedImage(data.videoUrl)
-      } else if (data.error) {
-        alert('Error: ' + data.error)
+      if (data.success) {
+        alert('🎬 ' + data.message + '\n\n' + data.info)
+      } else {
+        alert('Aviso: ' + (data.error || 'El motor de video no está disponible ahora. Usa la imagen.') + '\nTip: ' + (data.imageTip || ''))
       }
     } catch (error) {
-      console.error('Error generating video:', error)
-      alert('Error al generar video')
+      console.error('Error in video generation:', error)
+      alert('Error al conectar con la IA de video. Intenta capturar la pantalla o usar imágenes.')
     } finally {
       setGeneratingImage(false)
     }
   }
+
 
   const handleDownloadImage = () => {
     if (!generatedImage) return
@@ -479,18 +503,33 @@ export default function ContentGenerator() {
         >
           {generated && generatedContent ? (
             <div className="space-y-4">
-              <button
-                onClick={handleSaveToHistory}
-                disabled={savingHistory || !generatedContent}
-                className="w-full flex items-center justify-center gap-3 py-4 bg-creser-mint/20 border-2 border-dashed border-creser-mint/50 rounded-2xl text-creser-text font-bold hover:bg-creser-mint/30 transition-all group disabled:opacity-50"
-              >
-                {savingHistory ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Database className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                )}
-                {savingHistory ? 'Guardando...' : 'Guardar en Historial de CreSer'}
-              </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <button
+                  onClick={handleSaveToHistory}
+                  disabled={savingHistory || !generatedContent}
+                  className="w-full flex items-center justify-center gap-2 py-4 bg-creser-mint/20 border-2 border-dashed border-creser-mint/50 rounded-2xl text-creser-text font-bold hover:bg-creser-mint/30 transition-all group disabled:opacity-50 text-sm"
+                >
+                  {savingHistory ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Database className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  )}
+                  {savingHistory ? 'Guardando...' : 'Guardar borrador'}
+                </button>
+
+                <button
+                  onClick={handlePublishToN8N}
+                  disabled={publishing || !generatedContent}
+                  className="w-full flex items-center justify-center gap-2 py-4 bg-creser-blue/20 border-2 border-dashed border-creser-blue/50 rounded-2xl text-creser-text font-bold hover:bg-creser-blue/30 transition-all group disabled:opacity-50 text-sm"
+                >
+                  {publishing ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Share2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  )}
+                  {publishing ? 'Enviando...' : 'Publicar en Redes'}
+                </button>
+              </div>
               <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-heading text-lg font-semibold text-creser-text">
