@@ -360,40 +360,86 @@ export default function Settings() {
 
           {activeTab === 'integraciones' && (
             <div className="space-y-6">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h3 className="font-heading text-lg font-semibold text-creser-text mb-6">
-                  Integraciones Conectadas
+              <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100">
+                <h3 className="font-heading text-xl font-bold text-creser-text mb-8">
+                  Integraciones del Ecosistema
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {integrations.map((integration) => (
-                    <div key={integration.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-2xl">
-                          {integration.icon}
+                    <div key={integration.id} className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100 transition-all">
+                      <div className="flex items-center justify-between mb-0">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-3xl shadow-sm border border-gray-50">
+                            {integration.icon}
+                          </div>
+                          <div>
+                            <p className="font-bold text-creser-text">{integration.nombre}</p>
+                            <p className="text-xs font-medium text-creser-text-light">{integration.descripcion}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-creser-text">{integration.nombre}</p>
-                          <p className="text-sm text-creser-text-light">{integration.descripcion}</p>
-                        </div>
+                        <button
+                          onClick={() => {
+                            const current = document.getElementById(`config-${integration.id}`)
+                            current.classList.toggle('hidden')
+                          }}
+                          className={`px-6 py-2.5 rounded-2xl text-sm font-bold shadow-sm transition-all active:scale-95 ${
+                            integration.connected 
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                              : 'bg-creser-mint text-creser-text hover:bg-creser-mint/80'
+                          }`}
+                        >
+                          {integration.connected ? 'Configurar' : 'Conectar'}
+                        </button>
                       </div>
-                      <button
-                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                          integration.connected 
-                            ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                            : 'bg-creser-mint/30 text-creser-text hover:bg-creser-mint/50'
-                        }`}
-                      >
-                        {integration.connected ? (
-                          <span className="flex items-center gap-1">
-                            <Check className="w-4 h-4" /> Conectado
-                          </span>
-                        ) : (
-                          'Conectar'
-                        )}
-                      </button>
+                      
+                      {/* Credential Inputs Section */}
+                      <div id={`config-${integration.id}`} className="mt-6 pt-6 border-t border-gray-200/50 hidden">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] uppercase font-bold text-gray-400 mb-2 px-1">Clave API / Token</label>
+                            <input 
+                              type="password"
+                              placeholder="sk-..."
+                              className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm outline-none focus:border-creser-mint transition-all"
+                              onChange={(e) => {
+                                // Save logic can be added here
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] uppercase font-bold text-gray-400 mb-2 px-1">Webhook URL (n8n)</label>
+                            <input 
+                              type="text"
+                              placeholder="https://n8n.tudominio.com/webhook/..."
+                              className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm outline-none focus:border-creser-mint transition-all"
+                            />
+                          </div>
+                        </div>
+                        <p className="mt-3 text-[10px] text-creser-text-light italic px-1">
+                          * Esta configuración permite que {integration.nombre} se comunique con el motor de automatización de CreSer.
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-creser-text to-gray-800 rounded-[2.5rem] p-8 text-white shadow-2xl relative overflow-hidden">
+                <div className="relative z-10">
+                  <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
+                    <Key className="w-5 h-5 text-creser-mint" /> Hub de Automatización
+                  </h3>
+                  <p className="text-sm opacity-80 mb-6 max-w-md font-medium">
+                    Centraliza tus credenciales para que el generador distribuya contenido automáticamente a todas tus plataformas.
+                  </p>
+                  <button 
+                    onClick={handleSave}
+                    className="px-8 py-4 bg-creser-mint text-creser-text font-bold rounded-2xl hover:bg-white transition-all active:scale-95 shadow-lg"
+                  >
+                    Guardar Todas las Credenciales
+                  </button>
+                </div>
+                <div className="absolute right-[-10%] bottom-[-20%] w-64 h-64 bg-creser-mint/10 rounded-full blur-3xl" />
               </div>
             </div>
           )}
