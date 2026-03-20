@@ -1,1 +1,1 @@
-{"de": "Alejabot", "tipo": "BROADCAST", "mensaje": "Equipo, el objetivo es migrar de Ollama a OpenRouter con el modelo MiniMax-M2.5. Procedamos con la actualización de variables de entorno y lógica del backend."}
+{"de": "Alejabot", "tipo": "BROADCAST", "mensaje": "Fases 1 y 2 (Generación estable) completadas. Iniciando Fase 3: Persistencia y Autenticación. Por favor, Arquitecto y Backend, envíen planes para la integración con Supabase."}

@@ -68,6 +68,19 @@ export async function addScheduledContent(content) {
   return { data, error }
 }
 
+export async function saveContentHistory(content) {
+  const { data, error } = await supabase
+    .from(tables.content)
+    .insert([{
+      ...content,
+      estado: content.estado || 'borrador',
+      creado_en: new Date().toISOString()
+    }])
+    .select()
+  
+  return { data, error }
+}
+
 export async function getServices() {
   const { data, error } = await supabase
     .from(tables.services)

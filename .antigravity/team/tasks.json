@@ -2,26 +2,58 @@
   "tareas": [
     {
       "id": 1,
-      "t\u00edtulo": "Auditor\u00eda de Timeouts en Vercel",
-      "estado": "EN_PROGRESO",
+      "título": "Auditoría de Timeouts en Vercel y Optimización",
+      "estado": "COMPLETED",
       "asignado_a": "Arquitecto"
     },
     {
       "id": 2,
-      "t\u00edtulo": "Sincronizaci\u00f3n de Botones y Prompt de Imagen",
-      "estado": "PENDIENTE",
+      "título": "Sincronización de Botones, Prompt de Imagen (flux.2-pro) y Custom Topics",
+      "estado": "COMPLETED",
       "asignado_a": "Frontend"
     },
     {
       "id": 3,
-      "t\u00edtulo": "Implementaci\u00f3n de Motor de Imagen Robusto (Client-poll)",
-      "estado": "PENDIENTE",
+      "título": "Implementación de Motor de Imagen Robusto (OpenRouter + Client-Fallback)",
+      "estado": "COMPLETED",
       "asignado_a": "Especialista"
+    },
+    {
+      "id": 4,
+      "título": "Generación de Contenido con Razonamiento (MiniMax-M2.5)",
+      "estado": "COMPLETED",
+      "asignado_a": "Backend"
+    },
+    {
+      "id": 5,
+      "título": "Implementación de Autenticación Supabase (Terapeuta/Admin)",
+      "estado": "PENDIENTE",
+      "asignado_a": "Arquitecto"
+    },
+    {
+      "id": 6,
+      "título": "Esquema de Base de Datos para Historial de Contenido",
+      "estado": "PENDIENTE",
+      "asignado_a": "Arquitecto"
+    },
+    {
+      "id": 7,
+      "título": "Consumo de Kling AI en api/generar-video.js vía n8n",
+      "estado": "PENDIENTE",
+      "asignado_a": "Backend"
+    },
+    {
+      "id": 8,
+      "título": "Botón 'Publicar Ahora' y Sincronización con Webhook de n8n",
+      "estado": "PENDIENTE",
+      "asignado_a": "Frontend"
     }
   ],
   "miembros": [
     "Alejabot",
     "Arquitecto",
-    "Backend"
+    "Backend",
+    "Frontend",
+    "Especialista"
   ]
 }

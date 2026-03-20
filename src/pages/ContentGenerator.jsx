@@ -14,8 +14,11 @@ import {
   Video,
   FileText,
   RefreshCw,
-  Loader2
+  Loader2,
+  Save,
+  Database
 } from 'lucide-react'
+import { saveContentHistory } from '../services/supabase'
 
 const puter = window.puter
 
@@ -158,6 +161,34 @@ export default function ContentGenerator() {
   const [copied, setCopied] = useState(false)
   const [generatedContent, setGeneratedContent] = useState(null)
   const [generatedImage, setGeneratedImage] = useState(null)
+  const [savingHistory, setSavingHistory] = useState(false)
+
+  const handleSaveToHistory = async () => {
+    if (!generatedContent) return
+    setSavingHistory(true)
+    try {
+      const { error } = await saveContentHistory({
+        titulo: generatedContent.topic || formData.topic,
+        copy: generatedContent.copy,
+        hashtags: generatedContent.hashtags,
+        imagen_url: generatedImage,
+        servicio: formData.service,
+        tipo: formData.contentType,
+        plataforma: formData.platform,
+        estado: 'borrador'
+      })
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+      alert('¡Contenido guardado exitosamente! Puedes verlo en tu Dashboard o Calendario.')
+    } catch (error) {
+      console.error('Error saving content:', error)
+      alert('Error al conectar con la base de datos de CreSer. Intenta de nuevo.')
+    } finally {
+      setSavingHistory(false)
+    }
+  }
 
   const handleGenerate = async () => {
     setGenerating(true)
@@ -448,6 +479,18 @@ export default function ContentGenerator() {
         >
           {generated && generatedContent ? (
             <div className="space-y-4">
+              <button
+                onClick={handleSaveToHistory}
+                disabled={savingHistory || !generatedContent}
+                className="w-full flex items-center justify-center gap-3 py-4 bg-creser-mint/20 border-2 border-dashed border-creser-mint/50 rounded-2xl text-creser-text font-bold hover:bg-creser-mint/30 transition-all group disabled:opacity-50"
+              >
+                {savingHistory ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Database className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                )}
+                {savingHistory ? 'Guardando...' : 'Guardar en Historial de CreSer'}
+              </button>
               <div className="bg-white rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-heading text-lg font-semibold text-creser-text">

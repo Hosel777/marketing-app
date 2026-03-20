@@ -12,8 +12,10 @@ import {
   Sparkles,
   Menu,
   X,
-  ChevronLeft
+  ChevronLeft,
+  LogOut
 } from 'lucide-react'
+import { supabase } from '../services/supabase'
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -96,13 +98,20 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="p-2 md:p-4 border-t border-gray-100 hidden md:block">
-        <div className="bg-gradient-to-r from-creser-yellow/50 to-creser-mint/50 rounded-xl p-4">
+      <div className="p-4 border-t border-gray-100 flex flex-col gap-2">
+        <div className="bg-gradient-to-r from-creser-yellow/10 to-creser-mint/10 rounded-xl p-4 mb-2">
           <p className="text-sm font-medium text-creser-text mb-2">¿Necesitas ayuda?</p>
           <button className="w-full py-2 bg-white rounded-lg text-sm font-medium text-creser-text shadow-sm hover:shadow-md transition-shadow">
             Ver guías
           </button>
         </div>
+        <button 
+          onClick={() => supabase.auth.signOut()}
+          className="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-all font-medium"
+        >
+          <LogOut className="w-5 h-5" />
+          <span>Cerrar Sesión</span>
+        </button>
       </div>
     </>
   )

@@ -1,4 +1,6 @@
-import { Routes, Route } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { supabase } from './services/supabase'
 import Sidebar from './components/Sidebar'
 import Dashboard from './pages/Dashboard'
 import ContentGenerator from './pages/ContentGenerator'
@@ -7,8 +9,44 @@ import Calendar from './pages/Calendar'
 import Analytics from './pages/Analytics'
 import SocialMedia from './pages/SocialMedia'
 import Settings from './pages/Settings'
+import Login from './pages/Login'
 
 function App() {
+  const [session, setSession] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setLoading(false)
+    })
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-creser-mint border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!session) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    )
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
@@ -22,6 +60,7 @@ function App() {
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/redes-sociales" element={<SocialMedia />} />
             <Route path="/configuracion" element={<Settings />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </main>
