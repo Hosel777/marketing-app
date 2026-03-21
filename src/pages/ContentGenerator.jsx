@@ -207,11 +207,14 @@ export default function ContentGenerator() {
           webhookUrl: n8nUrl
         })
       })
-      if (!response.ok) throw new Error('Error al publicar')
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Error al publicar en n8n')
+      }
       alert('¡Listo! n8n ha recibido tu contenido para publicarlo en el Calendario y Redes ✨')
     } catch (error) {
       console.error('Error in n8n publish:', error)
-      alert('Error al conectar con n8n. Verifica el Webhook URL en la configuración.')
+      alert(`Error en n8n: ${error.message}\n\nURL configurada: ${n8nUrl || 'No configurada'}`)
     } finally {
       setPublishing(false)
     }

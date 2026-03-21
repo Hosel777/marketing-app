@@ -11,10 +11,12 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log(`Intentando conectar con n8n en: ${N8N_WEBHOOK_URL}`)
     const response = await fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true'
       },
       body: JSON.stringify({
         action: 'publicar',
