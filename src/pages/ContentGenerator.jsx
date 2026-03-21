@@ -172,11 +172,17 @@ export default function ContentGenerator() {
     const loadSettings = async () => {
       try {
         const { data } = await getSettings()
-        console.log('Cargando configuraciones en Generador:', data)
-        if (data && data.integrations) {
-          const integrations = JSON.parse(data.integrations)
-          console.log('Integraciones encontradas:', integrations)
-          if (integrations.n8nWebhook) setN8nUrl(integrations.n8nWebhook)
+        console.log('Settings cargados en Generador:', data)
+        if (data) {
+          // Prioridad 1: clave dedicada n8n_webhook
+          if (data.n8n_webhook) {
+            setN8nUrl(data.n8n_webhook)
+          }
+          // Prioridad 2: dentro del JSON de integrations
+          else if (data.integrations) {
+            const integrations = JSON.parse(data.integrations)
+            if (integrations.n8nWebhook) setN8nUrl(integrations.n8nWebhook)
+          }
         }
       } catch (e) { console.error('Error cargando ajustes:', e) }
     }
@@ -553,10 +559,22 @@ export default function ContentGenerator() {
                   {savingHistory ? 'Guardando...' : 'Guardar borrador'}
                 </button>
 
+                {/* Campo n8n URL inline */}
+                <div className="md:col-span-2 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                  <Share2 className="w-4 h-4 text-creser-blue shrink-0" />
+                  <input
+                    type="url"
+                    value={n8nUrl}
+                    onChange={(e) => setN8nUrl(e.target.value)}
+                    placeholder="Pega aquí tu URL de Webhook n8n (ej: https://xxxx.ngrok.io/webhook/...)"
+                    className="flex-1 bg-transparent text-xs text-creser-text focus:outline-none"
+                  />
+                </div>
+
                 <button
                   onClick={handlePublishToN8N}
                   disabled={publishing || !generatedContent}
-                  className="w-full flex items-center justify-center gap-2 py-4 bg-creser-blue/20 border-2 border-dashed border-creser-blue/50 rounded-2xl text-creser-text font-bold hover:bg-creser-blue/30 transition-all group disabled:opacity-50 text-sm"
+                  className="md:col-span-2 w-full flex items-center justify-center gap-2 py-4 bg-creser-blue/20 border-2 border-dashed border-creser-blue/50 rounded-2xl text-creser-text font-bold hover:bg-creser-blue/30 transition-all group disabled:opacity-50 text-sm"
                 >
                   {publishing ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
