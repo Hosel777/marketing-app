@@ -11,10 +11,9 @@ const openRouterClient = new OpenAI({
 })
 
 const HF_MODELS = [
-  'stabilityai/sd-turbo',
-  'stabilityai/stable-diffusion-xl-base-1.0',
   'black-forest-labs/FLUX.1-schnell',
-  'prompthero/openjourney'
+  'stabilityai/stable-diffusion-xl-base-1.0',
+  'stabilityai/sd-turbo'
 ]
 
 const createEnhancedPrompt = (prompt, tipo = 'post') => {
@@ -53,7 +52,7 @@ export default async function handler(req, res) {
 
       const response = apiResponse.choices[0].message
       if (response && response.images && response.images.length > 0) {
-        const imageUrl = response.images[0].image_url.url // Esto suele ser un data URL (base64)
+        const imageUrl = response.images[0].image_url.url
         console.log('Imagen generada con Flux 2.Pro exitosamente.')
         return res.status(200).json({
           success: true,
@@ -64,12 +63,38 @@ export default async function handler(req, res) {
       }
     } catch (error) {
       console.warn('Error en OpenRouter Flux:', error.message)
-      // Continuamos con el resto de fallbacks
+    }
+  }
+
+  // 2. INTENTO SECUNDARIO: HuggingFace (Si Flux falla)
+  if (HUGGINGFACE_API_KEY) {
+    for (const model of HF_MODELS) {
+      if ((Date.now() - startTime) > 8500) break;
+      try {
+        console.log(`Intentando modelo HF Secundario: ${model}`);
+        const imageBlob = await hf.textToImage({
+          model: model,
+          inputs: enhancedPrompt,
+          parameters: { guidance_scale: 7.5 }
+        });
+        if (!imageBlob || imageBlob.size < 100) continue;
+        const arrayBuffer = await imageBlob.arrayBuffer();
+        const base64Image = Buffer.from(arrayBuffer).toString('base64');
+        return res.status(200).json({ 
+          success: true, 
+          imageUrl: `data:${imageBlob.type};base64,${base64Image}`,
+          source: 'huggingface',
+          model
+        });
+      } catch (err) { 
+        console.warn(`Modelo HF ${model} falló:`, err.message);
+        continue; 
+      }
     }
   }
 
   return res.status(500).json({ 
     success: false, 
-    error: 'No se pudo generar con Flux 2.Pro. Intenta de nuevo más tarde.' 
+    error: 'No se pudo generar con Flux 2.Pro ni con modelos HF. Intenta de nuevo.' 
   })
 }
