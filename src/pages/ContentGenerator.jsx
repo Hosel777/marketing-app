@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
   Wand2,
@@ -17,7 +17,8 @@ import {
   Loader2,
   Save,
   Database,
-  Share2
+  Share2,
+  Upload
 } from 'lucide-react'
 import { saveContentHistory } from '../services/supabase'
 
@@ -164,6 +165,17 @@ export default function ContentGenerator() {
   const [generatedImage, setGeneratedImage] = useState(null)
   const [savingHistory, setSavingHistory] = useState(false)
   const [publishing, setPublishing] = useState(false)
+  const fileInputRef = useRef(null)
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setGeneratedImage(reader.result) // Preview base64
+    }
+    reader.readAsDataURL(file)
+  }
 
   const handlePublishToN8N = async () => {
     if (!generatedContent) return
@@ -605,41 +617,40 @@ export default function ContentGenerator() {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileUpload} 
+                  accept="image/*,video/*"
+                  className="hidden" 
+                />
+                
                 <button
                   onClick={handleGenerateImage}
                   disabled={generatingImage || !generatedContent}
-                  className="py-4 bg-gradient-to-r from-creser-pink to-creser-yellow rounded-xl font-semibold text-creser-text flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
+                  className="py-4 bg-gradient-to-r from-creser-pink to-creser-yellow rounded-xl font-semibold text-creser-text flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-50 text-xs md:text-sm"
                 >
-                  {generatingImage ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Generando...
-                    </>
-                  ) : (
-                    <>
-                      <Image className="w-5 h-5" />
-                      Imagen IA
-                    </>
-                  )}
+                  {generatingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Image className="w-5 h-5" />}
+                  Imagen IA
                 </button>
 
                 <button
                   onClick={handleGenerateVideo}
                   disabled={generatingImage || !generatedContent}
-                  className="py-4 bg-gradient-to-r from-creser-mint to-creser-pink rounded-xl font-semibold text-creser-text flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
+                  className="py-4 bg-gradient-to-r from-creser-mint to-creser-pink rounded-xl font-semibold text-creser-text flex items-center justify-center gap-2 hover:shadow-lg transition-all disabled:opacity-50 text-xs md:text-sm"
                 >
-                  {generatingImage ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Generando...
-                    </>
-                  ) : (
-                    <>
-                      <Video className="w-5 h-5" />
-                      Video IA
-                    </>
-                  )}
+                  {generatingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Video className="w-5 h-5" />}
+                  Video IA
+                </button>
+
+                <button
+                  onClick={() => fileInputRef.current.click()}
+                  disabled={!generatedContent}
+                  className="py-4 bg-white border-2 border-creser-mint rounded-xl font-semibold text-creser-text flex items-center justify-center gap-2 hover:shadow-md transition-all active:scale-95 disabled:opacity-50 text-xs md:text-sm"
+                >
+                  <Upload className="w-5 h-5 text-creser-mint" />
+                  Subir de Canva
                 </button>
               </div>
 
