@@ -139,8 +139,7 @@ Usa emojis. Devuelve SOLO JSON: {"copy": "...", "hashtags": ["#..."], "topic": "
             },
             { role: 'user', content: prompt }
           ],
-          reasoning: { enabled: true },
-          response_format: { type: 'json_object' }
+          reasoning: { enabled: true }
         })
         content = apiResponse.choices[0].message.content
       } else {
