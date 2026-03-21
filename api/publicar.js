@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL
+  const N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/crear-post"
   if (!N8N_WEBHOOK_URL) {
     return res.status(500).json({ error: 'Configuración de n8n no encontrada' })
   }
