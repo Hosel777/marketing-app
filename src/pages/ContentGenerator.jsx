@@ -20,7 +20,7 @@ import {
   Share2,
   Upload
 } from 'lucide-react'
-import { saveContentHistory } from '../services/supabase'
+import { saveContentHistory, getSettings } from '../services/supabase'
 
 const puter = window.puter
 
@@ -165,7 +165,21 @@ export default function ContentGenerator() {
   const [generatedImage, setGeneratedImage] = useState(null)
   const [savingHistory, setSavingHistory] = useState(false)
   const [publishing, setPublishing] = useState(false)
+  const [n8nUrl, setN8nUrl] = useState('')
   const fileInputRef = useRef(null)
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      const { data } = await getSettings()
+      if (data && data.integrations) {
+        try {
+          const integrations = JSON.parse(data.integrations)
+          if (integrations.n8nWebhook) setN8nUrl(integrations.n8nWebhook)
+        } catch (e) { console.error('Error parsing integrations:', e) }
+      }
+    }
+    loadSettings()
+  }, [])
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0]
@@ -189,7 +203,8 @@ export default function ContentGenerator() {
           type: formData.contentType,
           platform: formData.platform,
           service: formData.service,
-          imageUrl: generatedImage
+          imageUrl: generatedImage,
+          webhookUrl: n8nUrl
         })
       })
       if (!response.ok) throw new Error('Error al publicar')
