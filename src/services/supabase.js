@@ -10,7 +10,8 @@ export const tables = {
   content: 'scheduled_posts',
   appointments: 'appointments',
   services: 'services',
-  settings: 'settings'
+  settings: 'settings',
+  metrics: 'metrics'
 }
 
 export async function getLeads() {
@@ -108,8 +109,12 @@ export async function getSettings() {
 export async function updateSetting(clave, valor) {
   const { data, error } = await supabase
     .from(tables.settings)
-    .upsert({ clave, valor, updated_at: new Date().toISOString() })
+    .upsert(
+      { clave, valor, updated_at: new Date().toISOString() },
+      { onConflict: 'clave' }
+    )
     .select()
   
+  if (error) console.error('Supabase Upsert Error:', error)
   return { data, error }
 }

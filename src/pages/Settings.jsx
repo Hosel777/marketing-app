@@ -90,6 +90,14 @@ export default function Settings() {
     horarios: '',
   })
 
+  const [integrationsData, setIntegrationsData] = useState({
+    supabase: { key: '', webhook: '' },
+    whatsapp: { key: '', webhook: '' },
+    meta: { key: '', webhook: '' },
+    gemini: { key: '', webhook: '' },
+    n8n: { key: '', webhook: '' },
+  })
+
   const [notifications, setNotifications] = useState({
     nuevosLeads: true,
     recordatoriosCitas: true,
@@ -106,6 +114,7 @@ export default function Settings() {
       if (data) {
         if (data.institution) setInstitutionData(JSON.parse(data.institution))
         if (data.notifications) setNotifications(JSON.parse(data.notifications))
+        if (data.integrations) setIntegrationsData(JSON.parse(data.integrations))
         if (data.logo) setLogoPreview(data.logo)
       }
     } catch (e) {
@@ -122,14 +131,23 @@ export default function Settings() {
     setSaved(false)
     setLoading(true)
     try {
-      await Promise.all([
+      const results = await Promise.all([
         updateSetting('institution', JSON.stringify(institutionData)),
         updateSetting('notifications', JSON.stringify(notifications)),
+        updateSetting('integrations', JSON.stringify(integrationsData)),
         updateSetting('logo', logoPreview || '')
       ])
-      setSaved(true)
+      
+      const hasError = results.some(r => r.error)
+      if (hasError) {
+        const errors = results.filter(r => r.error).map(r => r.error.message).join('\n')
+        alert('Error(s) de Supabase:\n' + errors)
+      } else {
+        setSaved(true)
+      }
     } catch (e) {
-      console.error('Error saving settings:', e)
+      console.error('Error general at saving settings:', e)
+      alert('Error en la conexión. Revisa la consola.')
     }
     setLoading(false)
     setTimeout(() => setSaved(false), 3000)
@@ -386,62 +404,68 @@ export default function Settings() {
                   Integraciones del Ecosistema
                 </h3>
                 <div className="space-y-6">
-                  {integrations.map((integration) => (
-                    <div key={integration.id} className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100 transition-all">
-                      <div className="flex items-center justify-between mb-0">
-                        <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-3xl shadow-sm border border-gray-50">
-                            {integration.icon}
+                  {integrations.map((integration) => {
+                    const isConnected = integrationsData[integration.id]?.webhook || integrationsData[integration.id]?.key
+                    return (
+                      <div key={integration.id} className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100 transition-all">
+                        <div className="flex items-center justify-between mb-0">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-3xl shadow-sm border border-gray-50">
+                              {integration.icon}
+                            </div>
+                            <div>
+                              <p className="font-bold text-creser-text">{integration.nombre}</p>
+                              <p className="text-xs font-medium text-creser-text-light">{integration.descripcion}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-bold text-creser-text">{integration.nombre}</p>
-                            <p className="text-xs font-medium text-creser-text-light">{integration.descripcion}</p>
+                          <button
+                            onClick={() => {
+                              const current = document.getElementById(`config-${integration.id}`)
+                              current.classList.toggle('hidden')
+                            }}
+                            className={`px-6 py-2.5 rounded-2xl text-sm font-bold shadow-sm transition-all active:scale-95 ${
+                              isConnected 
+                                ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                                : 'bg-creser-mint text-creser-text hover:bg-creser-mint/80'
+                            }`}
+                          >
+                            {isConnected ? 'Configurar' : 'Conectar'}
+                          </button>
+                        </div>
+                        
+                        <div id={`config-${integration.id}`} className="mt-6 pt-6 border-t border-gray-200/50 hidden">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-[10px] uppercase font-bold text-gray-400 mb-2 px-1">Clave API / Token</label>
+                              <input 
+                                type="password"
+                                placeholder="sk-..."
+                                value={integrationsData[integration.id]?.key || ''}
+                                onChange={(e) => setIntegrationsData({
+                                  ...integrationsData,
+                                  [integration.id]: { ...integrationsData[integration.id], key: e.target.value }
+                                })}
+                                className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm outline-none focus:border-creser-mint transition-all"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] uppercase font-bold text-gray-400 mb-2 px-1">Webhook URL (n8n)</label>
+                              <input 
+                                type="text"
+                                placeholder="https://n8n.tudominio.com/..."
+                                value={integrationsData[integration.id]?.webhook || ''}
+                                onChange={(e) => setIntegrationsData({
+                                  ...integrationsData,
+                                  [integration.id]: { ...integrationsData[integration.id], webhook: e.target.value }
+                                })}
+                                className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm outline-none focus:border-creser-mint transition-all"
+                              />
+                            </div>
                           </div>
                         </div>
-                        <button
-                          onClick={() => {
-                            const current = document.getElementById(`config-${integration.id}`)
-                            current.classList.toggle('hidden')
-                          }}
-                          className={`px-6 py-2.5 rounded-2xl text-sm font-bold shadow-sm transition-all active:scale-95 ${
-                            integration.connected 
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                              : 'bg-creser-mint text-creser-text hover:bg-creser-mint/80'
-                          }`}
-                        >
-                          {integration.connected ? 'Configurar' : 'Conectar'}
-                        </button>
                       </div>
-                      
-                      {/* Credential Inputs Section */}
-                      <div id={`config-${integration.id}`} className="mt-6 pt-6 border-t border-gray-200/50 hidden">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-[10px] uppercase font-bold text-gray-400 mb-2 px-1">Clave API / Token</label>
-                            <input 
-                              type="password"
-                              placeholder="sk-..."
-                              className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm outline-none focus:border-creser-mint transition-all"
-                              onChange={(e) => {
-                                // Save logic can be added here
-                              }}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] uppercase font-bold text-gray-400 mb-2 px-1">Webhook URL (n8n)</label>
-                            <input 
-                              type="text"
-                              placeholder="https://n8n.tudominio.com/webhook/..."
-                              className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm outline-none focus:border-creser-mint transition-all"
-                            />
-                          </div>
-                        </div>
-                        <p className="mt-3 text-[10px] text-creser-text-light italic px-1">
-                          * Esta configuración permite que {integration.nombre} se comunique con el motor de automatización de CreSer.
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
 
