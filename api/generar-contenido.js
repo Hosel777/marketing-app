@@ -110,7 +110,7 @@ Tema específico: ${topic || 'atención integral'}
 Estructura: Gancho impactante, Problema empático, Solución CreSer, Llamado a la acción.
 Usa emojis. Devuelve SOLO JSON: {"copy": "...", "hashtags": ["#..."], "topic": "...", "promptVisual": "..."}`
 
-  const primaryModel = 'minimax/minimax-01:free'
+  const primaryModel = 'minimax/minimax-m2.5:free'
   const modelsToTry = [primaryModel]
 
   for (const model of modelsToTry) {
