@@ -110,9 +110,8 @@ Tema específico: ${topic || 'atención integral'}
 Estructura: Gancho impactante, Problema empático, Solución CreSer, Llamado a la acción.
 Usa emojis. Devuelve SOLO JSON: {"copy": "...", "hashtags": ["#..."], "topic": "...", "promptVisual": "..."}`
 
-  const primaryModel = OPENROUTER_API_KEY ? OPENROUTER_MODEL : 'meta-llama/llama-3.1-8b-instruct:free'
-  const modelToTryReasoning = 'minimax/minimax-m2.5:free'
-  const modelsToTry = [modelToTryReasoning, primaryModel, 'meta-llama/llama-3.1-8b-instruct:free']
+  const primaryModel = 'minimax/minimax-01:free'
+  const modelsToTry = [primaryModel]
 
   for (const model of modelsToTry) {
     try {
