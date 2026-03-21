@@ -170,13 +170,15 @@ export default function ContentGenerator() {
 
   useEffect(() => {
     const loadSettings = async () => {
-      const { data } = await getSettings()
-      if (data && data.integrations) {
-        try {
+      try {
+        const { data } = await getSettings()
+        console.log('Cargando configuraciones en Generador:', data)
+        if (data && data.integrations) {
           const integrations = JSON.parse(data.integrations)
+          console.log('Integraciones encontradas:', integrations)
           if (integrations.n8nWebhook) setN8nUrl(integrations.n8nWebhook)
-        } catch (e) { console.error('Error parsing integrations:', e) }
-      }
+        }
+      } catch (e) { console.error('Error cargando ajustes:', e) }
     }
     loadSettings()
   }, [])
@@ -193,6 +195,10 @@ export default function ContentGenerator() {
 
   const handlePublishToN8N = async () => {
     if (!generatedContent) return
+    if (!n8nUrl) {
+      alert('⚠️ No tienes configurado el Webhook de n8n. Ve al panel de "Ajustes > Integraciones" y asegúrate de guardar la URL de n8n.')
+      return
+    }
     setPublishing(true)
     try {
       const response = await fetch('/api/publicar', {
